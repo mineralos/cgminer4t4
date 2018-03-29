@@ -308,7 +308,7 @@ bool Ax_clock_setpll(struct A1_chain *a1, int pllClkIdx)
 
     for(i = 0; i < 5; i++)
     {
-        if(im_cmd_write_register(a1->chain_id, ADDR_BROADCAST, reg, REG09_LENGTH))
+        if(mcompat_cmd_write_register(a1->chain_id, ADDR_BROADCAST, reg, REG09_LENGTH))
         {
             applog(LOG_DEBUG, "set %d PLL %d success", pllClkIdx, Ax_clock_index2pll(pllClkIdx));
             return true;

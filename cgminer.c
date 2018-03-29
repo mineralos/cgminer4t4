@@ -31,9 +31,9 @@
 #include <limits.h>
 #include "scrypt.h"
 
-#include "im_config.h"
-#include "im_drv.h"
-#include "im_fan.h"
+#include "mcompat_config.h"
+#include "mcompat_drv.h"
+#include "mcompat_fan.h"
 
 #ifdef USE_USBUTILS
 #include <semaphore.h>
@@ -66,7 +66,7 @@ char *curly = ":D";
 #include "miner.h"
 #include "bench_block.h"
 
-#include "im_config.h"
+#include "mcompat_config.h"
 #include "t4_common.h"
 #include "getwork.h"
 
@@ -1080,7 +1080,7 @@ static char *set_url(char *arg)
     
     if(strstr(arg, "pool1") != NULL)
     {
-        pstr = im_arg_printe(g_url1, strlen(g_url1));
+        pstr = mcompat_arg_printe(g_url1, strlen(g_url1));
         if(pstr != NULL)
         {
             setup_url(pool, pstr);
@@ -1088,7 +1088,7 @@ static char *set_url(char *arg)
     }
     else if(strstr(arg, "pool2") != NULL)
     {
-        pstr = im_arg_printe(g_url2, strlen(g_url2));
+        pstr = mcompat_arg_printe(g_url2, strlen(g_url2));
         if(pstr != NULL)
         {
             setup_url(pool, pstr);
@@ -1096,7 +1096,7 @@ static char *set_url(char *arg)
     }
     else
     {
-        pstr = im_arg_printe(g_url1, strlen(g_url1));
+        pstr = mcompat_arg_printe(g_url1, strlen(g_url1));
         if(pstr != NULL)
         {
             setup_url(pool, pstr);
@@ -1197,21 +1197,21 @@ static char *set_user(const char *arg)
     {
         if(strstr(arg, "worker1") != NULL)
         {
-            pstr = im_arg_printe(g_user1, strlen(g_user1));
+            pstr = mcompat_arg_printe(g_user1, strlen(g_user1));
             if(pstr == NULL) 
                 return NULL;
             opt_set_charp(pstr, &pool->rpc_user);
         }
         else if(strstr(arg, "worker2") != NULL)
         {
-            pstr = im_arg_printe(g_user2, strlen(g_user2));
+            pstr = mcompat_arg_printe(g_user2, strlen(g_user2));
             if(pstr == NULL) 
                 return NULL;
             opt_set_charp(pstr, &pool->rpc_user);
         }
         else
         {
-            pstr = im_arg_printe(g_user1, strlen(g_user1));
+            pstr = mcompat_arg_printe(g_user1, strlen(g_user1));
             if(pstr == NULL) 
                 return NULL;
             opt_set_charp(pstr, &pool->rpc_user);
@@ -10635,7 +10635,7 @@ int main(int argc, char *argv[])
         }
         if (!use_curses)
         {
-            im_chain_power_down_all();
+            mcompat_chain_power_down_all();
             early_quit(0, "No servers could be used! Exiting.");
         }
 #ifdef HAVE_CURSES
@@ -10717,12 +10717,12 @@ begin_bench:
         struct pool *pool;
 
         // add by wangpeng
-        im_rand_temp_update();
+        mcompat_rand_temp_update();
 #if 0        
         //
         if(g_hwver == IM_LIB_HARDWARE_VERSION_G9)
         {
-            im_fan_detect();
+            mcompat_fan_detect();
         }
 #endif
         if(g_miner_state == 1)
@@ -10730,7 +10730,7 @@ begin_bench:
             // 
             if((g_ctype == CHIP_TYPE_D88) && (g_temp_update_flag == ((0x01) << total_devices) - 1))
             {
-                im_fan_speed_update_hub(&g_fan_temp);
+                mcompat_fan_speed_update_hub(&g_fan_temp);
                 g_temp_update_flag = 0;
             }
             
@@ -10738,7 +10738,7 @@ begin_bench:
             if((g_ctype == CHIP_TYPE_T88) && (g_fan_speed != opt_fanspeed))
             {
                 opt_fanspeed = g_fan_speed;
-                im_fan_speed_set(0, (opt_fanspeed * A8_FAN_STEP_DUTY));
+                mcompat_fan_speed_set(0, (opt_fanspeed * A8_FAN_STEP_DUTY));
             }
         }
         
@@ -10746,7 +10746,7 @@ begin_bench:
         if(g_reset_delay != 0xffff)
         {
             applog(LOG_INFO, "powerdown for api commond");
-            im_chain_power_down_all();
+            mcompat_chain_power_down_all();
             sleep(g_reset_delay);
             exit(1);
         }

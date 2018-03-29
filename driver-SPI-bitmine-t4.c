@@ -26,10 +26,10 @@
 #include "t4_common.h"
 #include "getwork.h"
 
-#include "im_aes.h"
-#include "im_config.h"
-#include "im_drv.h"
-#include "im_fan.h"
+#include "mcompat_aes.h"
+#include "mcompat_config.h"
+#include "mcompat_drv.h"
+#include "mcompat_fan.h"
 
 static int s_log_cnt[ASIC_CHAIN_NUM] = {0};
 static char s_log[ASIC_CHAIN_NUM][ASIC_CHIP_NUM][256];
@@ -135,16 +135,16 @@ void hw_test(void)
 
 #if 0
     char *pstr;
-    pstr = im_arg_printd(g_url1, strlen(g_url1));
+    pstr = mcompat_arg_printd(g_url1, strlen(g_url1));
     printf("[%s] \n[%s] \n", g_url1, pstr);
 
-    pstr = im_arg_printd(g_url2, strlen(g_url2));
+    pstr = mcompat_arg_printd(g_url2, strlen(g_url2));
     printf("[%s] \n[%s] \n", g_url2, pstr);
 
-    pstr = im_arg_printd(g_user1, strlen(g_user1));
+    pstr = mcompat_arg_printd(g_user1, strlen(g_user1));
     printf("[%s] \n[%s] \n", g_user1, pstr);
     
-    pstr = im_arg_printd(g_user2, strlen(g_user2));
+    pstr = mcompat_arg_printd(g_user2, strlen(g_user2));
     printf("[%s] \n[%s] \n", g_user2, pstr);
 #endif
 }
@@ -176,7 +176,7 @@ void software_test(void)
     for(i = 0; i < ASIC_CHAIN_NUM; i++)
     {
         memset(reg, 0, sizeof(reg));
-        im_cmd_read_register(i, 0, reg, REG_LENGTH);
+        mcompat_cmd_read_register(i, 0, reg, REG_LENGTH);
         hexdump("reg", reg, REG_LENGTH);
 
         
@@ -191,14 +191,14 @@ int init_one_A1_chain(struct A1_chain *a1)
 
     applog(LOG_INFO, "init chain:%d", a1->chain_id);
     
-    if(im_get_plug(a1->chain_id) != 0)
+    if(mcompat_get_plug(a1->chain_id) != 0)
     {
         applog(LOG_INFO, "chain:%d power on fail", a1->chain_id);
-        im_chain_power_down(a1->chain_id);
+        mcompat_chain_power_down(a1->chain_id);
         return -1;
     }
     
-    a1->num_chips = im_chain_detect(a1);
+    a1->num_chips = mcompat_chain_detect(a1);
     if (a1->num_chips < 1)
     {
         return 1;
@@ -291,7 +291,7 @@ bool chain_strcut_init(void)
     }
 }
 
-void im_chain_set_vid_all()
+void mcompat_chain_set_vid_all()
 {
     int i = 0;
     struct A1_chain *a1;
@@ -299,7 +299,7 @@ void im_chain_set_vid_all()
     for(i = 0; i < ASIC_CHAIN_NUM; i++)
     {
         a1 = chain[i];
-        im_set_vid(i, a1->vid);
+        mcompat_set_vid(i, a1->vid);
         //sleep(1);
     }
 }
@@ -438,16 +438,16 @@ void A1_detect(bool hotplug)
     //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
     sys_platform_init(PLATFORM_ZYNQ_HUB_G19, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
-    im_fan_speed_set(0, FAN_DEFAULT_SPEED);
+    mcompat_fan_speed_set(0, FAN_DEFAULT_SPEED);
     
-    im_chain_power_down_all();
+    mcompat_chain_power_down_all();
     chain_strcut_init();
-    im_fan_detect_init();
+    mcompat_fan_detect_init();
 
     sleep(5);
 
-    im_chain_set_vid_all();
-    im_chain_power_on_all();
+    mcompat_chain_set_vid_all();
+    mcompat_chain_power_on_all();
 
     // only for test
     software_test();
@@ -468,11 +468,11 @@ void A1_detect(bool hotplug)
     if(g_ctype == CHIP_TYPE_T88)
     {
         g_fan_speed = opt_fanspeed;
-        im_fan_speed_set(0, opt_fanspeed * A8_FAN_STEP_DUTY);
+        mcompat_fan_speed_set(0, opt_fanspeed * A8_FAN_STEP_DUTY);
     }
     else
     {
-        im_fan_auto_init(FAN_DEFAULT_SPEED);
+        mcompat_fan_auto_init(FAN_DEFAULT_SPEED);
     }
     
     // init finshed
@@ -715,7 +715,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
     }
 
     mutex_lock(&a1->lock);
-    //im_cmd_auto_nonce(a1->chain_id, 0, RES_LENGTH);
+    //mcompat_cmd_auto_nonce(a1->chain_id, 0, RES_LENGTH);
     
     /* check for completed works */
     if(a1->work_start_delay > 0)
@@ -729,7 +729,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
         work = wq_dequeue(&a1->active_wq);
         if (work != NULL) 
         {           
-            im_cmd_resetjob(a1->chain_id, 0);
+            mcompat_cmd_resetjob(a1->chain_id, 0);
             usleep(100);
             
             for (i = a1->num_active_chips; i > 0; i--) 
@@ -773,7 +773,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
         //applog(LOG_INFO, "%d, nonces processed %d", cid, nonce_ranges_processed);
     }
     
-    //im_cmd_auto_nonce(a1->chain_id, 1, RES_LENGTH);
+    //mcompat_cmd_auto_nonce(a1->chain_id, 1, RES_LENGTH);
 
     cgtime(&a1->tvScryptCurr);
     timersub(&a1->tvScryptCurr, &a1->tvScryptLast, &a1->tvScryptDiff);

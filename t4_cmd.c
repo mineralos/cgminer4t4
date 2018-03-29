@@ -76,7 +76,7 @@ void hexdump_error(char *prefix, uint8_t *buff, int len)
 }
 
 
-unsigned char im_cmd_resetall(unsigned char chain_id, unsigned char chip_id)
+unsigned char mcompat_cmd_resetall(unsigned char chain_id, unsigned char chip_id)
 {
     unsigned char buff_in[16];
     unsigned char buff_out[16];
@@ -84,10 +84,10 @@ unsigned char im_cmd_resetall(unsigned char chain_id, unsigned char chip_id)
     memset(buff_in, 0, sizeof(buff_in));
     memset(buff_out, 0, sizeof(buff_out));
     
-    return im_cmd_reset(chain_id, chip_id, buff_in, buff_out);
+    return mcompat_cmd_reset(chain_id, chip_id, buff_in, buff_out);
 }
 
-unsigned char im_cmd_resetjob(unsigned char chain_id, unsigned char chip_id)
+unsigned char mcompat_cmd_resetjob(unsigned char chain_id, unsigned char chip_id)
 {
     unsigned char buff_in[16];
     unsigned char buff_out[16];
@@ -95,7 +95,7 @@ unsigned char im_cmd_resetjob(unsigned char chain_id, unsigned char chip_id)
     memset(buff_in, 0xe1, sizeof(buff_in));
     memset(buff_out, 0, sizeof(buff_out));
     
-    return im_cmd_reset(chain_id, chip_id, buff_in, buff_out);
+    return mcompat_cmd_reset(chain_id, chip_id, buff_in, buff_out);
 }
 
 

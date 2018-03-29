@@ -2492,8 +2492,8 @@ static void pgaidentify(struct io_data *io_data, __maybe_unused SOCKETTYPE c, ch
 
 static char *s_url;
 static char *s_user;
-extern char* im_arg_printd(char *arg, int len);
-extern char* im_arg_printe(char *arg, int len);
+extern char* mcompat_arg_printd(char *arg, int len);
+extern char* mcompat_arg_printe(char *arg, int len);
 static void poolstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __maybe_unused char *param, bool isjson, __maybe_unused char group)
 {
     struct api_data *root = NULL;
@@ -2544,7 +2544,7 @@ static void poolstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __m
 
 #ifdef A8_POOL_FIX
 #if 0
-        s_url = im_arg_printd(pool->rpc_url, strlen(pool->rpc_url));
+        s_url = mcompat_arg_printd(pool->rpc_url, strlen(pool->rpc_url));
         if(s_url == NULL)
             return;
         //printf("s_url=[%s] \n", s_url);
@@ -2557,7 +2557,7 @@ static void poolstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __m
         }
         free(s_url);
 
-        s_user = im_arg_printd(pool->rpc_user, strlen(pool->rpc_user));
+        s_user = mcompat_arg_printd(pool->rpc_user, strlen(pool->rpc_user));
         if(s_user == NULL)
             return;
         //printf("s_user=[%s] \n", s_user);

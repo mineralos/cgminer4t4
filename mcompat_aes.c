@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "im_aes.h"
+#include "mcompat_aes.h"
 
 
 unsigned char Sbox[256] = {		// forward s-box

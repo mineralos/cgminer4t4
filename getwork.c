@@ -860,7 +860,7 @@ static void *getwork_rthread(void *userdata)
                 s_pool_error_cnt++;
                 if(s_pool_error_cnt > (4 * total_pools))
                 {
-                    im_chain_power_down_all();
+                    mcompat_chain_power_down_all();
                     exit(1);
                 }
                

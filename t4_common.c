@@ -9,7 +9,7 @@
 #include "miner.h"
 #include "util.h"
 
-#include "im_config.h"
+#include "mcompat_config.h"
 
 #include "t4_cmd.h"
 #include "t4_clock.h"
@@ -110,7 +110,7 @@ bool set_work(struct A1_chain *a1, uint8_t chip_id, struct work *work, uint8_t q
     }
     
     create_job(chip_id, job_id, work, jobdata);
-    if (!im_cmd_write_job(a1->chain_id, chip_id, jobdata, JOB_LENGTH)) 
+    if (!mcompat_cmd_write_job(a1->chain_id, chip_id, jobdata, JOB_LENGTH)) 
     {
         retval = false;
         applog(LOG_ERR, "%d: set work for chip %d.%d faile", cid, chip_id, job_id);
@@ -134,8 +134,8 @@ bool get_result(struct A1_chain *a1, uint8_t *nonce, uint8_t *hash, uint8_t *chi
     uint8_t buffer[64];
 
     memset(buffer, 0, sizeof(buffer));
-    if(im_cmd_read_result(a1->chain_id, CHIP_ID_BROADCAST, buffer, RES_LENGTH))
-    //if(im_cmd_read_nonce(a1->chain_id, buffer, RES_LENGTH))
+    if(mcompat_cmd_read_result(a1->chain_id, CHIP_ID_BROADCAST, buffer, RES_LENGTH))
+    //if(mcompat_cmd_read_nonce(a1->chain_id, buffer, RES_LENGTH))
     {
         //hexdump("result:", buffer, RES_LENGTH + 4);
         
@@ -167,7 +167,7 @@ bool abort_work(struct A1_chain *a1)
 {
     applog(LOG_INFO, "Start to reset ");
     
-    return im_cmd_resetjob(a1->chain_id, CHIP_ID_BROADCAST);
+    return mcompat_cmd_resetjob(a1->chain_id, CHIP_ID_BROADCAST);
 }
 
 
@@ -234,7 +234,7 @@ void check_disabled_chips(struct A1_chain *a1)
         if (chip->cooldown_begin + COOLDOWN_MS > get_current_ms())
             continue;
         
-        if (!im_cmd_read_register(a1->chain_id, chip_id, reg, REG_LENGTH)) 
+        if (!mcompat_cmd_read_register(a1->chain_id, chip_id, reg, REG_LENGTH)) 
         {
             chip->fail_count++;
             applog(LOG_WARNING, "%d: chip %d not yet working - %d", cid, chip_id, chip->fail_count);
@@ -271,11 +271,11 @@ void check_disabled_chips(struct A1_chain *a1)
             a1->bin1_test++;
             applog(LOG_WARNING, "###### reset the chain %d bin1 ######", cid);
             
-            im_chain_hw_reset(a1->chain_id);
-            a1->num_chips = im_chain_detect(a1);
+            mcompat_chain_hw_reset(a1->chain_id);
+            a1->num_chips = mcompat_chain_detect(a1);
             if(a1->num_chips < 1)
             {
-                im_chain_power_down_all();
+                mcompat_chain_power_down_all();
                 applog(LOG_WARNING, "reset chain %d faile, cgminer exit !!!", cid);
                 exit(0);
             }
@@ -295,11 +295,11 @@ void check_disabled_chips(struct A1_chain *a1)
             //a1->bin2_test++;
             applog(LOG_WARNING, "###### reset the chain %d bin2 ######", cid);
             
-            im_chain_hw_reset(a1->chain_id);
-            a1->num_chips = im_chain_detect(a1);
+            mcompat_chain_hw_reset(a1->chain_id);
+            a1->num_chips = mcompat_chain_detect(a1);
             if(a1->num_chips < 1)
             {
-                im_chain_power_down_all();
+                mcompat_chain_power_down_all();
                 applog(LOG_WARNING, "reset chain %d faile, cgminer exit !!!", cid);
                 exit(0);
             }
@@ -320,11 +320,11 @@ void check_disabled_chips(struct A1_chain *a1)
             a1->bin3_test++;
             applog(LOG_WARNING, "###### reset the chain %d bin3 ######", cid);
             
-            im_chain_hw_reset(a1->chain_id);    
-            a1->num_chips = im_chain_detect(a1);
+            mcompat_chain_hw_reset(a1->chain_id);    
+            a1->num_chips = mcompat_chain_detect(a1);
             if(a1->num_chips < 1)
             {
-                im_chain_power_down_all();
+                mcompat_chain_power_down_all();
                 applog(LOG_WARNING, "reset chain %d faile, cgminer exit !!!", cid);
                 exit(0);
             }
@@ -351,7 +351,7 @@ bool check_chip(struct A1_chain *a1, int i)
     int j = 0;
 
     memset(buffer, 0, sizeof(buffer));
-    if (!im_cmd_read_register(a1->chain_id, chip_id, buffer, REG_LENGTH)) 
+    if (!mcompat_cmd_read_register(a1->chain_id, chip_id, buffer, REG_LENGTH)) 
     {
         applog(LOG_WARNING, "%d: Failed to read register for chip %d -> disabling", cid, chip_id);
         a1->chips[i].num_cores = 0;
@@ -415,24 +415,24 @@ void config_adc_vsener(unsigned char chain_id, unsigned char chip_id)
     buf_in[4] = (a1->pll / 2 * 1000) / 16 / 650;
     
     buf_in[2] = buf_in[2] & 0x7f;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
     
     buf_in[2] = buf_in[2] | 0x80;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[1] = buf_in[1] | 0x04;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[2] = buf_in[2] | 0x20;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[0] = (buf_in[0] | 0x01) & 0xfd;
     buf_in[1] = (buf_in[1] | 0x02) & 0x7f;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 }
 
@@ -448,24 +448,24 @@ void config_adc_tsener(unsigned char chain_id, unsigned char chip_id)
     buf_in[4] = (a1->pll / 2 * 1000) / 16 / 650;
     
     buf_in[2] = buf_in[2] & 0x7f;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
     
     buf_in[2] = buf_in[2] | 0x80;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[1] = buf_in[1] | 0x04;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[2] = buf_in[2] | 0x20;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 
     buf_in[0] = buf_in[0] & 0xfc;
     buf_in[1] = buf_in[1] & 0x7d;
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     usleep(10000);
 }
 
@@ -483,7 +483,7 @@ float get_chip_voltage(unsigned char chain_id, unsigned char chip_id)
     buf_in[4] = (a1->pll / 2 * 1000) / 16 / 650;
     
     hexdump("in", buf_in, REG_LENGTH);
-    im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+    mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
     hexdump("out", buf_out, REG_LENGTH);
 
     rd_v = ((buf_out[2] << 8) | buf_out[3]) & 0x03ff; 
@@ -505,7 +505,7 @@ int get_chip_temperature(unsigned char chain_id, unsigned char chip_id)
         buf_in[4] = (a1->pll / 2 * 1000) / 16 / 650;
         
         //hexdump("in", buf_in, REG_LENGTH);
-        im_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
+        mcompat_cmd_read_write_reg0d(chain_id, chip_id, buf_in, REG_LENGTH, buf_out);
         //hexdump("out", buf_out, REG_LENGTH);
 
         return (0x03ff & ((buf_out[2] << 8) | buf_out[3]));
@@ -517,19 +517,19 @@ int get_chip_temperature(unsigned char chain_id, unsigned char chip_id)
 }
 
 #if 0
-int im_power_on(int chain_id)
+int mcompat_power_on(int chain_id)
 {
-    if(im_get_plug(chain_id) != 0)
+    if(mcompat_get_plug(chain_id) != 0)
     {
         applog(LOG_WARNING, "chain %d >>> the board not inserted !!!", chain_id);
         return -1;
     }
 
-    im_set_power_en(chain_id, 1);
+    mcompat_set_power_en(chain_id, 1);
     sleep(5);
-    im_set_reset(chain_id, 1);
+    mcompat_set_reset(chain_id, 1);
     sleep(1);
-    im_set_start_en(chain_id, 1);
+    mcompat_set_start_en(chain_id, 1);
 
     applog(LOG_INFO, "power on chain %d ", chain_id);
     
@@ -537,63 +537,63 @@ int im_power_on(int chain_id)
 }
 
 
-int im_power_down(int chain_id)
+int mcompat_power_down(int chain_id)
 {
-    im_set_power_en(chain_id, 0);
+    mcompat_set_power_en(chain_id, 0);
     sleep(1);
-    im_set_reset(chain_id, 0);
-    im_set_start_en(chain_id, 0);
-    im_set_led(chain_id, 1);
+    mcompat_set_reset(chain_id, 0);
+    mcompat_set_start_en(chain_id, 0);
+    mcompat_set_led(chain_id, 1);
 
     return 0;
 }
 
 
-int im_hw_reset(int chain_id)
+int mcompat_hw_reset(int chain_id)
 {
-    im_set_reset(chain_id, 0);
+    mcompat_set_reset(chain_id, 0);
     sleep(1);
-    im_set_reset(chain_id, 1);
+    mcompat_set_reset(chain_id, 1);
     sleep(1);
     
     return 0;
 }
 
 
-int im_power_on_all(void)
+int mcompat_power_on_all(void)
 {
     int i;
 
     for(i = 0; i < ASIC_CHAIN_NUM; i++)
     {
-        im_power_on(i);
+        mcompat_power_on(i);
     }
 }
 
 
-int im_power_down_all(void)
+int mcompat_power_down_all(void)
 {
     int i;
 
     for(i = 0; i < ASIC_CHAIN_NUM; i++)
     {
-        im_power_down(i);
+        mcompat_power_down(i);
     }
 }
 #endif
 
 
-int im_chain_detect(struct A1_chain *a1)
+int mcompat_chain_detect(struct A1_chain *a1)
 {
     uint8_t buffer[64];
     int pllindex;
     int chip_num;
 
     //set_spi_speed(1500000);
-    im_set_spi_speed(a1->chain_id, 2);
+    mcompat_set_spi_speed(a1->chain_id, 2);
     usleep(10000);
     
-    if(!im_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
+    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
     {
         applog(LOG_WARNING, "cmd reset fail");
         goto failure;
@@ -608,7 +608,7 @@ int im_chain_detect(struct A1_chain *a1)
     }
         
     //set_spi_speed(3250000);
-    im_set_spi_speed(a1->chain_id, 3);
+    mcompat_set_spi_speed(a1->chain_id, 3);
     sleep(1);
     
 #if 0
@@ -621,7 +621,7 @@ int im_chain_detect(struct A1_chain *a1)
     sleep(1);
 #endif
 
-    chip_num = im_cmd_bist_start(a1->chain_id, ADDR_BROADCAST);
+    chip_num = mcompat_cmd_bist_start(a1->chain_id, ADDR_BROADCAST);
     if(chip_num <= 0)
     {
         applog(LOG_WARNING, "bist start fail");
@@ -631,24 +631,24 @@ int im_chain_detect(struct A1_chain *a1)
     applog(LOG_DEBUG, "chain %d : detected %d chips", a1->chain_id, a1->num_chips);
     sleep(1);
 
-    if(!im_cmd_bist_fix(a1->chain_id, ADDR_BROADCAST))
+    if(!mcompat_cmd_bist_fix(a1->chain_id, ADDR_BROADCAST))
     {
         applog(LOG_WARNING, "bist fix fail");
         goto failure;
     }
     usleep(10000);
 
-    im_set_led(a1->chain_id, 0);
+    mcompat_set_led(a1->chain_id, 0);
     return a1->num_chips;
 
 failure:
-    im_set_led(a1->chain_id, 1);
+    mcompat_set_led(a1->chain_id, 1);
     return -1;
 }
 
 
 
-char* im_arg_printd(char *arg, int len)
+char* mcompat_arg_printd(char *arg, int len)
 {
     int i;
     char *pstr;
@@ -672,7 +672,7 @@ char* im_arg_printd(char *arg, int len)
     
 }
 
-char* im_arg_printe(char *arg, int len)
+char* mcompat_arg_printe(char *arg, int len)
 {
     int i;
     char *pstr;
@@ -781,7 +781,7 @@ int read_cgminer_config(void)
         return -1;   
     }
 
-    strkey = im_arg_printe(key, 16);
+    strkey = mcompat_arg_printe(key, 16);
     memset(strLine, 0, sizeof(strLine));
     while(fgets(strLine, sizeof(strLine), fp))  
     {
@@ -835,7 +835,7 @@ int read_cgminer_config(void)
 int g_last_temp_min = T4_TEMP_LOW_INIT;
 int g_last_temp_max = T4_TEMP_HIGH_INIT;
 static int s_last_temp_update_time = 0;
-void im_rand_temp_update(void)
+void mcompat_rand_temp_update(void)
 {
     if(s_last_temp_update_time + RAND_TEMP_UPDATE_MS < get_current_ms())
     {

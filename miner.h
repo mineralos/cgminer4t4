@@ -19,7 +19,7 @@
 
 #include "t4_common.h"
 
-#include "im_fan.h"
+#include "mcompat_fan.h"
 
 
 //#define CHIP_A5
@@ -1162,7 +1162,7 @@ extern int g_fan_speed;
 extern int g_reset_delay;
 extern int g_miner_state;
 
-extern im_fan_temp_s g_fan_temp;
+extern mcompat_fan_temp_s g_fan_temp;
 extern g_temp_update_flag;
 
 

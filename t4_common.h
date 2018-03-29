@@ -82,17 +82,17 @@ bool abort_work(struct A1_chain *a1);
 bool set_work(struct A1_chain *a1, uint8_t chip_id, struct work *work, uint8_t queue_states);
 bool get_result(struct A1_chain *a1, uint8_t *nonce, uint8_t *hash, uint8_t *chip_id, uint8_t *job_id);
 
-int im_chain_detect(struct A1_chain *a1);
+int mcompat_chain_detect(struct A1_chain *a1);
 
 void inno_log_print(int cid, void* log, int len);
 
-void im_rand_temp_update(void);
+void mcompat_rand_temp_update(void);
 
-void im_fan_detect(void);
+void mcompat_fan_detect(void);
 
-char* im_arg_printd(char *arg, int len);
+char* mcompat_arg_printd(char *arg, int len);
 
-char* im_arg_printe(char *arg, int len);
+char* mcompat_arg_printe(char *arg, int len);
 
 int read_cgminer_config(void);
 

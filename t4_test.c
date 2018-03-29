@@ -70,7 +70,7 @@ bool vid_pll_get_core_num(struct A1_chain *a1, struct Test_bench *ptest)
     uint8_t buffer[64];
     
     memset(buffer, 0, sizeof(buffer));
-    chip_num = im_cmd_bist_start(a1->chain_id, 0);
+    chip_num = mcompat_cmd_bist_start(a1->chain_id, 0);
     if(chip_num == 0)
     {
         applog(LOG_WARNING, "bist start fail");
@@ -80,7 +80,7 @@ bool vid_pll_get_core_num(struct A1_chain *a1, struct Test_bench *ptest)
     applog(LOG_WARNING, "chain %d detected %d chips", a1->chain_id, a1->num_chips);
     sleep(1);
 
-    if(!im_cmd_bist_fix(a1, ADDR_BROADCAST))
+    if(!mcompat_cmd_bist_fix(a1, ADDR_BROADCAST))
     {
         applog(LOG_WARNING, "bist fix fail");
         return false;
@@ -97,7 +97,7 @@ bool vid_pll_get_core_num(struct A1_chain *a1, struct Test_bench *ptest)
         uint8_t buffer[64];
         
         memset(buffer, 0, sizeof(buffer));
-        if(!im_cmd_read_register(a1->chain_id, chip_id, buffer, REG_LENGTH)) 
+        if(!mcompat_cmd_read_register(a1->chain_id, chip_id, buffer, REG_LENGTH)) 
         {
             applog(LOG_WARNING, "chain %d: Failed to read register for chip %d", cid, chip_id);
             return false;;
@@ -128,16 +128,16 @@ bool vid_pll_one_detect(struct A1_chain *a1, struct Test_bench *ptest)
     int pllindex;
     uint8_t buffer[64];
 
-    //im_hw_reset(a1->chain_id);
+    //mcompat_hw_reset(a1->chain_id);
 
     // update pll
     s_pll = ptest->uiPll;
 
     //set_spi_speed(1500000);    
-    im_set_spi_speed(a1->chain_id, 2);
+    mcompat_set_spi_speed(a1->chain_id, 2);
     usleep(10000);
     
-    if(!im_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
+    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
     {
         applog(LOG_WARNING, "cmd reset fail");
         return false;
@@ -151,7 +151,7 @@ bool vid_pll_one_detect(struct A1_chain *a1, struct Test_bench *ptest)
     }
 
     //set_spi_speed(3250000);
-    im_set_spi_speed(a1->chain_id, 3);
+    mcompat_set_spi_speed(a1->chain_id, 3);
     usleep(10000);  
     
     vid_pll_get_core_num(a1, ptest);

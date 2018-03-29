@@ -10,14 +10,14 @@
 
 #include "t4_fan.h"
 
-im_temp_config_s s_temp_config;
+mcompat_temp_config_s s_temp_config;
 
-im_temp_s g_temp[ASIC_CHAIN_NUM];
-im_fan_temp_s g_fan_temp;
+mcompat_temp_s g_temp[ASIC_CHAIN_NUM];
+mcompat_fan_temp_s g_fan_temp;
 pthread_mutex_t g_temp_update_lock;
 int g_temp_update_flag;
 
-void im_fan_auto_init(int speed)
+void mcompat_fan_auto_init(int speed)
 {
     s_temp_config.temp_hi_thr = 408;
     s_temp_config.temp_lo_thr = 652;
@@ -26,8 +26,8 @@ void im_fan_auto_init(int speed)
     s_temp_config.work_temp = 505;
     s_temp_config.default_fan_speed = 20;
 
-    g_fan_temp.im_temp = g_temp;
-    im_fan_temp_init(0, s_temp_config);
+    g_fan_temp.mcompat_temp = g_temp;
+    mcompat_fan_temp_init(0, s_temp_config);
 
     g_temp_update_flag = 0;
     mutex_init(&g_temp_update_lock);
@@ -37,12 +37,12 @@ void im_fan_auto_init(int speed)
 static int s_error_num_cnt[6] = {0};
 static uint32_t s_last_num[6] = {0};
 static pthread_mutex_t fan_detect_lock;
-void im_fan_detect_init(void)
+void mcompat_fan_detect_init(void)
 {   
     mutex_init(&fan_detect_lock);
 }
 
-bool im_fan_speed_test(void)
+bool mcompat_fan_speed_test(void)
 {
     int i;
     int fd = 0;
@@ -138,14 +138,14 @@ bool im_fan_speed_test(void)
 
 
 static int s_last_fan_detect_time = 0;
-void im_fan_detect(void)
+void mcompat_fan_detect(void)
 {
     if(s_last_fan_detect_time + FAN_DETECT_MS < get_current_ms())
     {
-        if(!im_fan_speed_test())
+        if(!mcompat_fan_speed_test())
         {
             applog(LOG_WARNING, "fan error power down all chain");
-            im_chain_power_down_all();
+            mcompat_chain_power_down_all();
         }
         s_last_fan_detect_time = get_current_ms();
     }

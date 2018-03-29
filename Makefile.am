@@ -124,7 +124,7 @@ cgminer_SOURCES += t4_cmd.c
 cgminer_SOURCES += t4_clock.c
 cgminer_SOURCES += t4_test.c
 cgminer_SOURCES += t4_fan.c
-cgminer_SOURCES += im_aes.c
+cgminer_SOURCES += mcompat_aes.c
 cgminer_SOURCES += getwork.c
 endif
 
