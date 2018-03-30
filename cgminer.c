@@ -10720,7 +10720,7 @@ begin_bench:
         mcompat_rand_temp_update();
 #if 0        
         //
-        if(g_hwver == IM_LIB_HARDWARE_VERSION_G9)
+        if(g_hwver == MCOMPAT_LIB_HARDWARE_VERSION_G9)
         {
             mcompat_fan_detect();
         }

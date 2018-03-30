@@ -433,8 +433,8 @@ void A1_detect(bool hotplug)
     // only for test
     //hw_test();
 
-    //sys_platform_debug_init(IM_LOG_DEBUG);
-    sys_platform_debug_init(IM_LOG_INFO);
+    //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
+    sys_platform_debug_init(MCOMPAT_LOG_INFO);
     //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
     sys_platform_init(PLATFORM_ZYNQ_HUB_G19, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
