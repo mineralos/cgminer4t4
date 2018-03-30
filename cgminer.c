@@ -1044,76 +1044,6 @@ out:
 }
 
 
-#ifdef A8_POOL_FIX
-#if 1
-//char * g_url1 = "fc-bj2.s.innomining.com:1800";
-char * g_url1 = "c`*_g/+p+fkkljfkfkd+`lj7.5--";
-#endif
-#if 0
-//char * g_url1 = "fc-bj.s.innomining.com:1800";
-char * g_url1 = "c`*_g+p+fkkljfkfkd+`lj7.5--";
-#endif
-#if 0
-//char * g_url1 = "dash1.eurohash.net:1111";
-char * g_url1 = "a^pe.+brole^pe+kbq7....";
-#endif
-/*
-//char * g_url2 = "163.172.28.245:8083";
-char * g_url2 = ".30+.4/+/5+/1275-50";
-*/
-#if 0
-//char * g_url2 = "106.15.189.226:7777";
-char * g_url2 = ".-3+.2+.56+//374444";
-#endif
-#if 1
-//char * g_url2 = "47.100.117.103:7777";
-char * g_url2 = "14+.--+..4+.-074444";
-#endif
-
-static char * s_url_arg;
-static char *set_url(char *arg)
-{
-    char *pstr;
-    struct pool *pool = add_url();
-#if 0       
-    s_url_arg = arg;
-    
-    if(strstr(arg, "pool1") != NULL)
-    {
-        pstr = mcompat_arg_printe(g_url1, strlen(g_url1));
-        if(pstr != NULL)
-        {
-            setup_url(pool, pstr);
-        }       
-    }
-    else if(strstr(arg, "pool2") != NULL)
-    {
-        pstr = mcompat_arg_printe(g_url2, strlen(g_url2));
-        if(pstr != NULL)
-        {
-            setup_url(pool, pstr);
-        }
-    }
-    else
-    {
-        pstr = mcompat_arg_printe(g_url1, strlen(g_url1));
-        if(pstr != NULL)
-        {
-            setup_url(pool, pstr);
-        }
-    }
-#endif
-
-    if(pool->pool_no < 3)
-    {
-        memcpy(g_pool_conf[pool->pool_no].pool_url, arg, strlen(arg));
-        setup_url(pool, g_pool_run[pool->pool_no].pool_url);
-    }
-
-    //printf("pool%d url:%s \n", pool->pool_no, pool->rpc_url);
-    return NULL;
-}
-#else
 static char *set_url(char *arg)
 {
     char *pstr;
@@ -1123,7 +1053,6 @@ static char *set_url(char *arg)
 
     return NULL;
 }
-#endif
 
 
 static char *set_quota(char *arg)
@@ -1155,87 +1084,6 @@ static char *set_quota(char *arg)
     return NULL;
 }
 
-
-#ifdef A8_POOL_FIX
-//char * g_user1 = "46TupghmPXiZBY9UuNLwmPRAieWADHeFZARiaRg7txLHdth9YwNNHYDWFioBjDmU5eKZkKFcbn1wv9xX12dKPc8nLhY9JcM";
-char * g_user1 = "13QrmdejMUfW?V6RrKItjMO>fbT>AEbCW>Of^Od4quIEaqe6VtKKEVATCfl?gAjR2bHWhHC`_k.ts6uU./aHM`5kIeV6G`J";
-/*
-//char * g_user2 = "46NEQL9UTn41owzsyt1gJhTCgn8eswoMYCS2NfwNzKdqNKGdqTKS3BBMrwgjuz9kHg4d6rZ1YdscxXuLzQ2A3P54JsbDpmY";
-char * g_user2 = "13KBNI6RQk1.ltwpvq.dGeQ@dk5bptlJV@P/KctKwHanKHDanQHP0??Jotdgrw6hEd1a3oW.Vap`uUrIwN/>0M21Gp_AmjV";
-*/
-//char * g_user2 = "etnjyB4McdN4tF3rKVTWCFZzC3BHnbHmX4yGfeLjd6MG3RBEE5kpWwPSDutaXVBmkb5hqEuKMrVSjaamcLFwEbos1ZwcCnJE99";
-char * g_user2 = "bqkgv?1J`aK1qC0oHSQT@CWw@0?Ek_EjU1vDcbIga3JD0O?BB2hmTtMPArq^US?jh_2enBrHJoSPg^^j`ICtB_lp.Wt`@kGB66";
-
-static char *set_user(const char *arg)
-{
-    char *pstr;
-    struct pool *pool;
-    
-    if (total_userpasses)
-        return "Use only user + pass or userpass, but not both";
-    total_users++;
-    if (total_users > total_pools)
-        add_pool();
-
-    pool = pools[total_users - 1];
-#if 0
-    if(strstr(s_url_arg, "pool1") != NULL)
-    {
-        opt_set_charp(arg, &pool->rpc_user);
-#if 0
-        if(strstr(arg, "inno19") != NULL)
-        {
-            opt_set_charp(arg, &pool->rpc_user);
-        }
-        else
-        {
-            opt_set_charp("inno19.xxxx", &pool->rpc_user);
-        }
-#endif
-    }
-    else if(strstr(s_url_arg, "pool2") != NULL)
-    {
-        if(strstr(arg, "worker1") != NULL)
-        {
-            pstr = mcompat_arg_printe(g_user1, strlen(g_user1));
-            if(pstr == NULL) 
-                return NULL;
-            opt_set_charp(pstr, &pool->rpc_user);
-        }
-        else if(strstr(arg, "worker2") != NULL)
-        {
-            pstr = mcompat_arg_printe(g_user2, strlen(g_user2));
-            if(pstr == NULL) 
-                return NULL;
-            opt_set_charp(pstr, &pool->rpc_user);
-        }
-        else
-        {
-            pstr = mcompat_arg_printe(g_user1, strlen(g_user1));
-            if(pstr == NULL) 
-                return NULL;
-            opt_set_charp(pstr, &pool->rpc_user);
-        }
-    }
-    else
-    {
-        opt_set_charp("xxx.yyy", &pool->rpc_user);
-    }
-#endif
-
-    if(pool->pool_no < 3)
-    {
-        memcpy(g_pool_conf[pool->pool_no].pool_user, arg, strlen(arg));
-        if(strstr(g_pool_run[pool->pool_no].pool_user, ".******") != NULL) {
-            opt_set_charp(arg, &pool->rpc_user);
-        } else {
-            opt_set_charp(g_pool_run[pool->pool_no].pool_user, &pool->rpc_user);
-        }
-    }
-    //printf("pool%d user:%s \n", pool->pool_no, pool->rpc_user);
-    return NULL;
-}
-#else
 static char *set_user(const char *arg)
 {
     char *pstr;
@@ -1253,31 +1101,7 @@ static char *set_user(const char *arg)
     
     return NULL;
 }
-#endif
 
-
-#ifdef A8_POOL_FIX
-static char *set_pass(const char *arg)
-{
-    struct pool *pool;
-
-    if (total_userpasses)
-        return "Use only user + pass or userpass, but not both";
-    total_passes++;
-    if (total_passes > total_pools)
-        add_pool();
-
-    pool = pools[total_passes - 1];
-
-    if(pool->pool_no < 3)
-    {
-        memcpy(g_pool_conf[pool->pool_no].pool_pass, arg, strlen(arg));
-        opt_set_charp(g_pool_run[pool->pool_no].pool_pass, &pool->rpc_pass);
-    }
-    //printf("pool%d pass:%s \n", pool->pool_no, pool->rpc_pass);
-    return NULL;
-}
-#else
 static char *set_pass(const char *arg)
 {
     struct pool *pool;

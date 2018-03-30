@@ -26,8 +26,6 @@
 //#define CHIP_A6
 #define CHIP_A8
 
-#define A8_PROTOCOL_ENCRYPT
-//#define A8_POOL_FIX
 
 #define A8_FAN_STEP_DUTY    10
 

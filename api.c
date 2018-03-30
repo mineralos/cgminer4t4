@@ -2542,40 +2542,10 @@ static void poolstatus(struct io_data *io_data, __maybe_unused SOCKETTYPE c, __m
         else
             lp = (char *)NO;
 
-#ifdef A8_POOL_FIX
-#if 0
-        s_url = mcompat_arg_printd(pool->rpc_url, strlen(pool->rpc_url));
-        if(s_url == NULL)
-            return;
-        //printf("s_url=[%s] \n", s_url);
-        if(strstr(s_url, g_url1) != NULL){
-            root = api_add_escape(root, "URL", STATIC_URL1_STR, false);
-        } else if(strstr(s_url, g_url2) != NULL) {
-            root = api_add_escape(root, "URL", STATIC_URL2_STR, false);
-        } else{
-            root = api_add_escape(root, "URL", pool->rpc_url, false);
-        }
-        free(s_url);
 
-        s_user = mcompat_arg_printd(pool->rpc_user, strlen(pool->rpc_user));
-        if(s_user == NULL)
-            return;
-        //printf("s_user=[%s] \n", s_user);
-        if(strstr(s_user, g_user1) != NULL){
-            root = api_add_escape(root, "User", STATIC_USER1_STR, false);
-        } else if(strstr(s_user, g_user2) != NULL) {
-            root = api_add_escape(root, "User", STATIC_USER2_STR, false);
-        } else{
-            root = api_add_escape(root, "User", pool->rpc_user, false);
-        }
-        free(s_user);
-#endif
-		root = api_add_escape(root, "URL", g_pool_conf[pool->pool_no].pool_url, false);
-        root = api_add_escape(root, "User", g_pool_conf[pool->pool_no].pool_user, false);
-#else
         root = api_add_escape(root, "URL", pool->rpc_url, false);
         root = api_add_escape(root, "User", pool->rpc_user, false);
-#endif
+
         root = api_add_int(root, "POOL", &i, false);        
         root = api_add_string(root, "Status", status, false);
         root = api_add_int(root, "Priority", &(pool->prio), false);

@@ -1763,48 +1763,6 @@ retry:
 
 
 
-#ifdef A8_PROTOCOL_ENCRYPT
-char s_send_str[2048];
-extern bool gen_getwork_sendata(char *in, char *out);
-bool stratum_send(struct pool *pool, char *s, ssize_t len)
-{
-    ssize_t length;
-    enum send_ret ret = SEND_INACTIVE;
-
-    //applog(LOG_INFO, "send[pool%d](%s)", pool->pool_no, s);
-
-    if (opt_protocol)
-        applog(LOG_DEBUG, "SEND: %s", s);
-
-    memset(s_send_str, 0, sizeof(s_send_str));
-    gen_getwork_sendata(s, s_send_str);
-    length = strlen(s_send_str);
-    
-    mutex_lock(&pool->stratum_lock);
-    if (pool->stratum_active)
-        ret = __stratum_send(pool, s_send_str, length);
-    mutex_unlock(&pool->stratum_lock);
-
-    /* This is to avoid doing applog under stratum_lock */
-    switch (ret) {
-        default:
-        case SEND_OK:
-            break;
-        case SEND_SELECTFAIL:
-            applog(LOG_DEBUG, "Write select failed on pool %d sock", pool->pool_no);
-            suspend_stratum(pool);
-            break;
-        case SEND_SENDFAIL:
-            applog(LOG_DEBUG, "Failed to send in stratum_send");
-            suspend_stratum(pool);
-            break;
-        case SEND_INACTIVE:
-            applog(LOG_DEBUG, "Stratum send failed due to no pool stratum_active");
-            break;
-    }
-    return (ret == SEND_OK);
-}
-#else
 bool stratum_send(struct pool *pool, char *s, ssize_t len)
 {
     enum send_ret ret = SEND_INACTIVE;
@@ -1836,7 +1794,6 @@ bool stratum_send(struct pool *pool, char *s, ssize_t len)
     }
     return (ret == SEND_OK);
 }
-#endif
 
 static bool socket_full(struct pool *pool, int wait)
 {
@@ -1920,86 +1877,6 @@ static void recalloc_sock(struct pool *pool, size_t len)
 
 /* Peeks at a socket to find the first end of line and then reads just that
  * from the socket and returns that as a malloced char */
-#ifdef A8_PROTOCOL_ENCRYPT
-char s_rev_str[2048];
-extern int gen_getwork_revdata(char *in, char *out);
-char *recv_line(struct pool *pool)
-{
-    char *tok, *sret = NULL;
-    ssize_t len, buflen;
-    int waited = 0;
-
-    if (!strstr(pool->sockbuf, "\n")) {
-        struct timeval rstart, now;
-
-        cgtime(&rstart);
-        if (!socket_full(pool, DEFAULT_SOCKWAIT)) {
-            applog(LOG_INFO, "Timed out waiting for data on socket_full");
-            goto out;
-        }
-
-        do {
-            char s[RBUFSIZE];
-            size_t slen;
-            ssize_t n;
-
-            memset(s, 0, RBUFSIZE);
-            n = recv(pool->sock, s, RECVSIZE, 0);
-
-            memset(s_rev_str, 0, sizeof(s_rev_str));
-            gen_getwork_revdata(s, s_rev_str);
-            
-            if (!n) {
-                applog(LOG_INFO, "Socket closed waiting in recv_line");
-                suspend_stratum(pool);
-                break;
-            }
-            cgtime(&now);
-            waited = tdiff(&now, &rstart);
-            if (n < 0) {
-                if (!sock_blocks() || !socket_full(pool, DEFAULT_SOCKWAIT - waited)) {
-                    applog(LOG_INFO, "Failed to recv sock in recv_line");
-                    suspend_stratum(pool);
-                    break;
-                }
-            } else {
-                slen = strlen(s);
-                recalloc_sock(pool, slen);
-                strcat(pool->sockbuf, s);
-            }
-        }while (waited < DEFAULT_SOCKWAIT && !strstr(s_rev_str, "\n"));
-    }
-
-    buflen = strlen(s_rev_str);
-    tok = strtok(s_rev_str, "\n");
-    if (!tok) {
-        applog(LOG_INFO, "Failed to parse a \\n terminated string in recv_line");
-        goto out;
-    }
-    sret = strdup(tok);
-    len = strlen(sret);
-
-    /* Copy what's left in the buffer after the \n, including the
-     * terminating \0 */
-    if (buflen > len + 1)
-        memmove(s_rev_str, s_rev_str + len + 1, buflen - len + 1);
-    else
-        strcpy(s_rev_str, "");
-
-    pool->cgminer_pool_stats.times_received++;
-    pool->cgminer_pool_stats.bytes_received += len;
-    pool->cgminer_pool_stats.net_bytes_received += len;
-out:
-    if (!sret)
-        clear_sock(pool);
-    else if (opt_protocol)
-        applog(LOG_DEBUG, "RECVD: %s", sret);
-    
-    //applog(LOG_INFO, "recv[pool%d](%s)", pool->pool_no, sret);
-    
-    return sret;
-}
-#else
 char *recv_line(struct pool *pool)
 {
     char *tok, *sret = NULL;
@@ -2072,7 +1949,6 @@ out:
     
     return sret;
 }
-#endif
 
 
 /* Extracts a string value from a json array with error checking. To be used
