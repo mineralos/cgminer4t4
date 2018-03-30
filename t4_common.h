@@ -37,8 +37,8 @@
 #define LOG_FILE_PREFIX         "/tmp/log/analys"
 
 
-#define ASIC_INNO_FAN_DECT0_DEVICE_NAME  ("/dev/fandect0.0")
-#define ASIC_INNO_FAN_DECT1_DEVICE_NAME  ("/dev/fandect1.0")
+#define ASIC_FAN_DECT0_DEVICE_NAME  ("/dev/fandect0.0")
+#define ASIC_FAN_DECT1_DEVICE_NAME  ("/dev/fandect1.0")
 
 #define ASIC_FAN_STEP_SPEED             (30)
 #define ASIC_FAN_SAFE_SPEED             (100)
@@ -83,8 +83,6 @@ bool set_work(struct A1_chain *a1, uint8_t chip_id, struct work *work, uint8_t q
 bool get_result(struct A1_chain *a1, uint8_t *nonce, uint8_t *hash, uint8_t *chip_id, uint8_t *job_id);
 
 int mcompat_chain_detect(struct A1_chain *a1);
-
-void inno_log_print(int cid, void* log, int len);
 
 void mcompat_rand_temp_update(void);
 

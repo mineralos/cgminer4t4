@@ -489,7 +489,7 @@ uint8_t cLevelError4[3] = "%";
 uint8_t cLevelError5[3] = "*";
 uint8_t cLevelNormal[3] = "+";
 
-void inno_Log_Save(struct A1_chip *chip, int nChain, int nChip)
+void dm_Log_Save(struct A1_chip *chip, int nChain, int nChip)
 {
     uint8_t szInNormal[8] = {0};
     
@@ -532,7 +532,7 @@ void inno_Log_Save(struct A1_chip *chip, int nChain, int nChip)
         chip->hw_errors, chip->stales, chip->temp, chip->nVol, chip->num_cores, nChip, nChain);
 }
 
-void inno_log_print(int cid, void* log, int len)
+void dm_log_print(int cid, void* log, int len)
 {
     FILE* fd;
     char fileName[128] = {0};
@@ -650,9 +650,9 @@ static int64_t A1_scanwork(struct thr_info *thr)
             for (i = a1->num_active_chips; i > 0; i--)
             {
                 struct A1_chip *chip = &a1->chips[i - 1];
-                inno_Log_Save(chip, cid, i);
+                dm_Log_Save(chip, cid, i);
             }
-            inno_log_print(cid, s_log[cid], ASIC_CHIP_NUM * 256);
+            dm_log_print(cid, s_log[cid], ASIC_CHIP_NUM * 256);
             s_log_cnt[cid] = 0;
         }
         

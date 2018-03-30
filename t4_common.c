@@ -613,7 +613,7 @@ int mcompat_chain_detect(struct A1_chain *a1)
     
 #if 0
     applog(LOG_WARNING, "bist mask");
-    if(!inno_cmd_write_reg0d(a1, 0, (uint8_t*)reg0d_default_value))
+    if(!mcompat_cmd_write_reg0d(a1, 0, (uint8_t*)reg0d_default_value))
     {
         applog(LOG_WARNING, "write reg 0d fail");
         goto failure;

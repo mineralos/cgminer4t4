@@ -69,7 +69,7 @@ bool mcompat_fan_speed_test(void)
     
     mutex_lock(&fan_detect_lock);
 
-    fd = open(ASIC_INNO_FAN_DECT0_DEVICE_NAME, O_RDWR);
+    fd = open(ASIC_FAN_DECT0_DEVICE_NAME, O_RDWR);
     if(fd < 0)
     {
         applog(LOG_ERR, "open fandect fail");
