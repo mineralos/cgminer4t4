@@ -6,12 +6,19 @@
 #define MAX_TEMP    652
 #define MIN_TEMP    408
 
+#define MAX_TEMP_CENTIGRADE    (125)
+#define MIN_TEMP_CENTIGRADE    (-37)
+
+
 #define MUL_COEF    1.23
 
 
 #define ASIC_CHAIN_NUM                  8
 #define ASIC_CHIP_NUM                   80
-#define ASIC_CORE_NUM                   8
+#define ASIC_T88_CORE_NUM               8
+#define ASIC_D88_CORE_NUM               6
+
+
 
 #define REG09_LENGTH                    12     
 

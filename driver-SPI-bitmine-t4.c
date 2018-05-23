@@ -509,12 +509,12 @@ void dm_Log_Save(struct A1_chip *chip, int nChain, int nChip)
 
     if(g_ctype == CHIP_TYPE_D88)
     {
-        if((chip->temp > MAX_TEMP) || (chip->temp < MIN_TEMP)){
+        if((chip->temp > MAX_TEMP_CENTIGRADE) || (chip->temp < MIN_TEMP_CENTIGRADE)){
             strcat(szInNormal,cLevelError3);
         }
     }
     
-    if(chip->num_cores < ASIC_CORE_NUM){
+    if(chip->num_cores < ASIC_D88_CORE_NUM){
         strcat(szInNormal,cLevelError4);
     }
 #if 0
@@ -526,9 +526,9 @@ void dm_Log_Save(struct A1_chip *chip, int nChain, int nChip)
     }
 #endif    
     if((chip->hw_errors == 0) && (chip->stales == 0) 
-        /* && ((chip->temp < MAX_TEMP) && (chip->temp > MIN_TEMP)) */
+         && ((chip->temp > MAX_TEMP_CENTIGRADE) && (chip->temp < MIN_TEMP_CENTIGRADE)) 
         /* &&((chip->nVol < MAX_VOL) && (chip->nVol > MIN_VOL)) */
-        && (chip->num_cores == ASIC_CORE_NUM)){
+        && (chip->num_cores == ASIC_D88_CORE_NUM)){
         strcat(szInNormal,cLevelNormal);
     }
 
@@ -638,7 +638,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
             
             g_temp[cid].final_temp_avg = sum / 6;
 
-            applog(LOG_ERR, "chain%d ||%d %d %d||%d %d %d||%d", 
+            applog(LOG_INFO, "chain%d ||%d %d %d||%d %d %d||%d", 
                 cid, temp_to_centigrade(g_temp[cid].temp_highest[0]), 
                 temp_to_centigrade(g_temp[cid].temp_highest[1]), temp_to_centigrade(g_temp[cid].temp_highest[2]), 
                 temp_to_centigrade(g_temp[cid].temp_lowest[0]), temp_to_centigrade(g_temp[cid].temp_lowest[1]), 
