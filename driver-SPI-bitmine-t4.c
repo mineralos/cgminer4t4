@@ -430,7 +430,8 @@ void A1_detect(bool hotplug)
         parsed_config_options = &A1_config_options;
     }
 
-    g_hwver = misc_get_board_version();
+    //g_hwver = misc_get_board_version();
+    g_hwver = inno_get_hwver();
     //g_mtype = misc_get_miner_type();
     g_ctype = CHIP_TYPE_D88;
 
@@ -439,8 +440,8 @@ void A1_detect(bool hotplug)
 
     //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
     sys_platform_debug_init(MCOMPAT_LOG_INFO);
-    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
-    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, 4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_T4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
+    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_T4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
     mcompat_fan_speed_set(0, FAN_DEFAULT_SPEED);
     
@@ -454,7 +455,7 @@ void A1_detect(bool hotplug)
     mcompat_chain_power_on_all();
 
     // only for test
-    software_test();
+    //software_test();
 
     // preheat
     miner_preheat(opt_heattime);

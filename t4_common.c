@@ -855,6 +855,36 @@ void mcompat_rand_temp_update(void)
 }
 
 
+hardware_version_e inno_get_hwver(void)
+{
+	FILE* fd;
+	char buffer[64] = {0};
+	hardware_version_e version;
+
+	fd = fopen(INNO_HARDWARE_VERSION_FILE, "r");
+	if (fd == NULL) {
+		applog(LOG_ERR, "Open hwver file failed, assuming hardware version G19 !");
+		return HARDWARE_VERSION_G19;
+	}
+
+	fread(buffer, 8, 1, fd);
+	fclose(fd);
+
+	if (strstr(buffer, "G9") != NULL) {
+		version = HARDWARE_VERSION_G9;
+		applog(LOG_INFO, "hardware version is G9");
+	}else if (strstr(buffer, "G19") != 0) {
+		version = HARDWARE_VERSION_G19;
+		applog(LOG_INFO, "hardware version is G19");
+	}else {
+		version = 0;
+		applog(LOG_ERR, "unknown hardware version !!!");
+	}
+
+	return version;
+}
+
+
 /******************************************************************************
  * Function:    temp_to_centigrade
  * Description: temperature value to centigrade

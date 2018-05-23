@@ -62,6 +62,18 @@
 extern int g_last_temp_min;
 extern int g_last_temp_max;
 
+
+#define INNO_HARDWARE_VERSION_FILE			"/tmp/hwver"
+
+typedef enum {
+	HARDWARE_VERSION_NONE = 0x00,
+	HARDWARE_VERSION_G9 = 0x09,
+	HARDWARE_VERSION_G19 = 0x13,
+} hardware_version_e;
+
+
+
+
 extern struct A1_chain *chain[ASIC_CHAIN_NUM];
 
 struct pool_config {
@@ -102,6 +114,7 @@ float get_chip_voltage(unsigned char chain_id, unsigned char chip_id);
 
 int get_chip_temperature(unsigned char chain_id, unsigned char chip_id);
 
+hardware_version_e inno_get_hwver(void);
 
 int temp_to_centigrade(int temp);
 
