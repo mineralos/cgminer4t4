@@ -10478,51 +10478,7 @@ int main(int argc, char *argv[])
     /* Use the DRIVER_PARSE_COMMANDS macro to fill all the device_drvs */
     DRIVER_PARSE_COMMANDS(DRIVER_FILL_DEVICE_DRV)
 
-    /* Use the DRIVER_PARSE_COMMANDS macro to detect all devices */
-    DRIVER_PARSE_COMMANDS(DRIVER_DRV_DETECT_ALL)
 
-    if (opt_display_devs) {
-        applog(LOG_ERR, "Devices detected:");
-        for (i = 0; i < total_devices; ++i) {
-            struct cgpu_info *cgpu = devices[i];
-            if (cgpu->name)
-                applog(LOG_ERR, " %2d. %s %d: %s (driver: %s)", i, cgpu->drv->name, cgpu->device_id, cgpu->name, cgpu->drv->dname);
-            else
-                applog(LOG_ERR, " %2d. %s %d (driver: %s)", i, cgpu->drv->name, cgpu->device_id, cgpu->drv->dname);
-        }
-        early_quit(0, "%d devices listed", total_devices);
-    }
-
-    mining_threads = 0;
-    for (i = 0; i < total_devices; ++i)
-        enable_device(devices[i]);
-
-    if (!opt_decode) {
-#ifdef USE_USBUTILS
-        if (!total_devices) {
-            applog(LOG_WARNING, "No devices detected!");
-            applog(LOG_WARNING, "Waiting for USB hotplug devices or press q to quit");
-        }
-#else
-        if (!total_devices)
-            early_quit(1, "All devices disabled, cannot mine!");
-#endif
-    }
-
-    most_devices = total_devices;
-
-    load_temp_cutoffs();
-
-    for (i = 0; i < total_devices; ++i)
-        devices[i]->cgminer_stats.getwork_wait_min.tv_sec = MIN_SEC_UNSET;
-
-    if (!opt_compact) {
-        logstart += most_devices;
-        logcursor = logstart + 1;
-#ifdef HAVE_CURSES
-        check_winsizes();
-#endif
-    }
 
     if (!total_pools) {
         applog(LOG_WARNING, "Need to specify at least one pool server.");
@@ -10562,43 +10518,6 @@ int main(int argc, char *argv[])
             fork_monitor();
     #endif // defined(unix)
 
-    mining_thr = cgcalloc(mining_threads, sizeof(thr));
-    for (i = 0; i < mining_threads; i++)
-        mining_thr[i] = cgcalloc(1, sizeof(*thr));
-
-    // Start threads
-    k = 0;
-    for (i = 0; i < total_devices; ++i) {
-        struct cgpu_info *cgpu = devices[i];
-        cgpu->thr = cgmalloc(sizeof(*cgpu->thr) * (cgpu->threads+1));
-        cgpu->thr[cgpu->threads] = NULL;
-        cgpu->status = LIFE_INIT;
-
-        for (j = 0; j < cgpu->threads; ++j, ++k) {
-            thr = get_thread(k);
-            thr->id = k;
-            thr->cgpu = cgpu;
-            thr->device_thread = j;
-
-            if (!cgpu->drv->thread_prepare(thr))
-                continue;
-
-            if (unlikely(thr_info_create(thr, NULL, miner_thread, thr)))
-                early_quit(1, "thread %d create failed", thr->id);
-
-            cgpu->thr[j] = thr;
-#if 1
-            if (unlikely(thr_info_create(thr, NULL, scan_thread, thr)))
-                early_quit(1, "scan thread %d create failed", thr->id);
-#endif
-            /* Enable threads for devices set not to mine but disable
-             * their queue in case we wish to enable them later */
-            if (cgpu->deven != DEV_DISABLED) {
-                applog(LOG_DEBUG, "Pushing sem post to thread %d", thr->id);
-                cgsem_post(&thr->sem);
-            }
-        }
-    }
 
     if (opt_benchmark || opt_benchfile)
         goto begin_bench;
@@ -10649,6 +10568,94 @@ int main(int argc, char *argv[])
     };
 
 begin_bench:
+    /* Use the DRIVER_PARSE_COMMANDS macro to detect all devices */
+    DRIVER_PARSE_COMMANDS(DRIVER_DRV_DETECT_ALL)
+
+    if (opt_display_devs) {
+        applog(LOG_ERR, "Devices detected:");
+        for (i = 0; i < total_devices; ++i) {
+            struct cgpu_info *cgpu = devices[i];
+            if (cgpu->name)
+                applog(LOG_ERR, " %2d. %s %d: %s (driver: %s)", i, cgpu->drv->name, cgpu->device_id, cgpu->name, cgpu->drv->dname);
+            else
+                applog(LOG_ERR, " %2d. %s %d (driver: %s)", i, cgpu->drv->name, cgpu->device_id, cgpu->drv->dname);
+        }
+        early_quit(0, "%d devices listed", total_devices);
+    }
+
+    mining_threads = 0;
+    for (i = 0; i < total_devices; ++i)
+        enable_device(devices[i]);
+
+
+    mining_thr = cgcalloc(mining_threads, sizeof(thr));
+    for (i = 0; i < mining_threads; i++)
+        mining_thr[i] = cgcalloc(1, sizeof(*thr));
+
+
+    if (!opt_decode) {
+#ifdef USE_USBUTILS
+        if (!total_devices) {
+            applog(LOG_WARNING, "No devices detected!");
+            applog(LOG_WARNING, "Waiting for USB hotplug devices or press q to quit");
+        }
+#else
+        if (!total_devices)
+            early_quit(1, "All devices disabled, cannot mine!");
+#endif
+    }
+
+    most_devices = total_devices;
+
+    load_temp_cutoffs();
+
+    for (i = 0; i < total_devices; ++i)
+        devices[i]->cgminer_stats.getwork_wait_min.tv_sec = MIN_SEC_UNSET;
+
+    if (!opt_compact) {
+        logstart += most_devices;
+        logcursor = logstart + 1;
+#ifdef HAVE_CURSES
+        check_winsizes();
+#endif
+    }
+
+    
+    // Start threads
+    k = 0;
+    for (i = 0; i < total_devices; ++i) {
+        struct cgpu_info *cgpu = devices[i];
+        cgpu->thr = cgmalloc(sizeof(*cgpu->thr) * (cgpu->threads+1));
+        cgpu->thr[cgpu->threads] = NULL;
+        cgpu->status = LIFE_INIT;
+
+        for (j = 0; j < cgpu->threads; ++j, ++k) {
+            thr = get_thread(k);
+            thr->id = k;
+            thr->cgpu = cgpu;
+            thr->device_thread = j;
+
+            if (!cgpu->drv->thread_prepare(thr))
+                continue;
+
+            if (unlikely(thr_info_create(thr, NULL, miner_thread, thr)))
+                early_quit(1, "thread %d create failed", thr->id);
+
+            cgpu->thr[j] = thr;
+#if 1
+            if (unlikely(thr_info_create(thr, NULL, scan_thread, thr)))
+                early_quit(1, "scan thread %d create failed", thr->id);
+#endif
+            /* Enable threads for devices set not to mine but disable
+             * their queue in case we wish to enable them later */
+            if (cgpu->deven != DEV_DISABLED) {
+                applog(LOG_DEBUG, "Pushing sem post to thread %d", thr->id);
+                cgsem_post(&thr->sem);
+            }
+        }
+    }
+
+  
     total_mhashes_done = 0;
     for (i = 0; i < total_devices; i++) {
         struct cgpu_info *cgpu = devices[i];
