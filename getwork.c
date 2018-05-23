@@ -594,7 +594,7 @@ bool login_getwork(struct pool *pool)
         }
         memset(&rpc2_id[pool->pool_no], 0, 64);
         memcpy(&rpc2_id[pool->pool_no], id, 64);
-#if 0    
+#if (!FIRST_JOB_DUPLICATE_WITH_LOGIN_JOB)       /* Disabled only when the first job is duplicated with the login return job */
         job_val = json_object_get(result_val, "job");
         if (job_val) {
             gen_getwork_work(pool, job_val, true);                          

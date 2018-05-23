@@ -35,6 +35,11 @@
 #define CHIP_TYPE_D88       2
 
 
+#define FIRST_JOB_DUPLICATE_WITH_LOGIN_JOB  0   /* not duplicate */
+//#define FIRST_JOB_DUPLICATE_WITH_LOGIN_JOB  1         /* duplicate, only for a specific mining pool */
+
+
+
 #ifndef WIN32
 # include <sys/socket.h>
 # include <netdb.h>
