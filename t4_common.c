@@ -855,4 +855,20 @@ void mcompat_rand_temp_update(void)
 }
 
 
+/******************************************************************************
+ * Function:    temp_to_centigrade
+ * Description: temperature value to centigrade
+ * Arguments:   temp        temperature value from AD
+ * Return:      centigrade value
+ ******************************************************************************/
+int temp_to_centigrade(int temp)
+{
+    // return 0 if temp is a invalid value
+    if(temp == 0)
+        return 0;
+
+    return (595.0f - temp) * 2 / 3 + 0.5f;
+}
+
+
 

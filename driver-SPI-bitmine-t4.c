@@ -30,6 +30,7 @@
 #include "mcompat_config.h"
 #include "mcompat_drv.h"
 #include "mcompat_fan.h"
+#include "mcompat_lib.h"
 
 static int s_log_cnt[ASIC_CHAIN_NUM] = {0};
 static char s_log[ASIC_CHAIN_NUM][ASIC_CHIP_NUM][256];
@@ -101,15 +102,18 @@ void set_cgpu(struct cgpu_info *cgpu)
 {
     int temp;
     struct A1_chain *a1 = cgpu->device_data;
+    int cid = a1->chain_id;
 
-    temp = rand() % 5;
-    cgpu->temp_min = g_last_temp_min + temp - 2;
-    temp = rand() % 5;
-    cgpu->temp_max = g_last_temp_max + temp - 2;
-    temp = rand() % 5;
-    cgpu->temp = (cgpu->temp_min + cgpu->temp_max + temp - 2) / 2;
+    cgpu->temp_min  = (double)temp_to_centigrade(g_temp[cid].temp_lowest[0]);
+    cgpu->temp_max  = (double)temp_to_centigrade(g_temp[cid].temp_highest[0]);
+    cgpu->temp      = (double)temp_to_centigrade(g_temp[cid].final_temp_avg);
 
-    cgpu->fan_duty = (opt_fanspeed * A8_FAN_STEP_DUTY);
+
+    if (g_fan_temp.speed)
+        cgpu->fan_duty = g_fan_temp.speed;
+    else
+        cgpu->fan_duty = (opt_fanspeed * A8_FAN_STEP_DUTY);
+
     cgpu->chip_num = a1->num_active_chips;
     cgpu->core_num = a1->num_cores; 
 }
@@ -603,8 +607,9 @@ static int64_t A1_scanwork(struct thr_info *thr)
             {
                 struct A1_chip *chip = &a1->chips[i - 1];
 
-                chip->temp = get_chip_temperature(a1->chain_id, i);
-                g_chip_temp[cid][i - 1] = chip->temp;
+
+                g_chip_temp[cid][i - 1] = get_chip_temperature(a1->chain_id, i);
+                chip->temp = temp_to_centigrade(g_chip_temp[cid][i - 1]);
             }
             qsort(g_chip_temp[cid], ASIC_CHIP_NUM, sizeof(g_chip_temp[cid][0]), Ax_temp_compare);
             /*
@@ -626,16 +631,18 @@ static int64_t A1_scanwork(struct thr_info *thr)
             g_temp[cid].temp_highest[1] = g_chip_temp[cid][1];
             g_temp[cid].temp_highest[2] = g_chip_temp[cid][2];
 
-            g_temp[cid].temp_lowest[0] = g_chip_temp[cid][ASIC_CHIP_NUM - 3];
+            g_temp[cid].temp_lowest[0] = g_chip_temp[cid][ASIC_CHIP_NUM - 1];
             g_temp[cid].temp_lowest[1] = g_chip_temp[cid][ASIC_CHIP_NUM - 2];
-            g_temp[cid].temp_lowest[2] = g_chip_temp[cid][ASIC_CHIP_NUM - 1];
+            g_temp[cid].temp_lowest[2] = g_chip_temp[cid][ASIC_CHIP_NUM - 3];
             
             g_temp[cid].final_temp_avg = sum / 6;
 
             applog(LOG_ERR, "chain%d ||%d %d %d||%d %d %d||%d", 
-                cid, g_temp[cid].temp_highest[0], g_temp[cid].temp_highest[1], g_temp[cid].temp_highest[2], 
-                g_temp[cid].temp_lowest[0], g_temp[cid].temp_lowest[1], g_temp[cid].temp_lowest[2], g_temp[cid].final_temp_avg);
-            
+                cid, temp_to_centigrade(g_temp[cid].temp_highest[0]), 
+                temp_to_centigrade(g_temp[cid].temp_highest[1]), temp_to_centigrade(g_temp[cid].temp_highest[2]), 
+                temp_to_centigrade(g_temp[cid].temp_lowest[0]), temp_to_centigrade(g_temp[cid].temp_lowest[1]), 
+                temp_to_centigrade(g_temp[cid].temp_lowest[2]), temp_to_centigrade(g_temp[cid].final_temp_avg));
+
             g_temp_update_flag = g_temp_update_flag | (0x01 << cid);
             mutex_unlock(&g_temp_update_lock); 
             

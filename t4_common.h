@@ -103,6 +103,7 @@ float get_chip_voltage(unsigned char chain_id, unsigned char chip_id);
 int get_chip_temperature(unsigned char chain_id, unsigned char chip_id);
 
 
+int temp_to_centigrade(int temp);
 
 
 
