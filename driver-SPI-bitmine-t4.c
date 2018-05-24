@@ -232,6 +232,9 @@ int init_one_A1_chain(struct A1_chain *a1)
         check_chip(a1, i);
     }
 
+    /* A8+ does not need auto tune, end auto tune. */
+    a1->VidOptimal = true;
+    a1->pllOptimal = true;
     applog(LOG_DEBUG, "%d: found %d chips with total %d active cores", a1->chain_id, a1->num_active_chips, a1->num_cores);
 
     mutex_init(&a1->lock);
@@ -885,6 +888,7 @@ static struct api_data *A1_api_stats(struct cgpu_info *cgpu)
     //ROOT_ADD_API(bool, "FanOptimal", g_fan_ctrl.optimal, false);
 	ROOT_ADD_API(int, "iVid", t1->vid, false);
 	ROOT_ADD_API(bool, "VidOptimal", t1->VidOptimal, false);
+	ROOT_ADD_API(bool, "pllOptimal", t1->pllOptimal, false);
 	ROOT_ADD_API(int, "Chain num", cgpu->chainNum, false);
 	ROOT_ADD_API(double, "MHS av", cgpu->mhs_av, false);
 	ROOT_ADD_API(bool, "Disabled", t1->disabled, false);

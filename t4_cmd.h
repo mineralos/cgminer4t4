@@ -105,7 +105,8 @@ struct A1_chain {
     
     uint32_t vid;
     uint32_t pll;
-    bool VidOptimal;
+    bool VidOptimal; // We've stopped tuning voltage
+    bool pllOptimal; // We've stopped tuning frequency
 
     int bin1_test;
     int bin2_test;
