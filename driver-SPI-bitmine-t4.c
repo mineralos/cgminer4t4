@@ -97,10 +97,18 @@ static struct work *wq_dequeue(struct work_queue *wq)
     return work;
 }
 
+/* Show fan speed just after cgminer start mining in Web */
+void set_cgpu_init_value(struct cgpu_info *cgpu)
+{
+    struct A1_chain *a1 = cgpu->device_data;
+
+    cgpu->fan_duty = (opt_fanspeed * A8_FAN_STEP_DUTY);
+    cgpu->chip_num = a1->num_active_chips;
+    cgpu->core_num = a1->num_cores;
+}
 
 void set_cgpu(struct cgpu_info *cgpu)
 {
-    int temp;
     struct A1_chain *a1 = cgpu->device_data;
     int cid = a1->chain_id;
 

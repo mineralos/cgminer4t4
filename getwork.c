@@ -91,6 +91,8 @@ extern bool test_work_current(struct work *work);
 void hexdump(char *prefix, uint8_t *buff, int len);
 void hashmeter(int thr_id, uint64_t hashes_done);
 
+extern void set_cgpu_init_value(struct cgpu_info *cgpu);
+
 
 bool jobj_binary(const json_t *obj, const char *key, void *buf, size_t buflen)
 {
@@ -1025,7 +1027,8 @@ void scan_nonce_hash(struct thr_info *thr)
     struct device_drv *drv = cgpu->drv;
     const int thr_id = thr->id;
     int64_t hashes_done = 0;
-    
+
+    set_cgpu_init_value(cgpu);
     while(42) {
         struct timeval diff;
         int64_t hashes;
