@@ -526,7 +526,7 @@ void dm_Log_Save(struct A1_chip *chip, int nChain, int nChip)
     }
 #endif    
     if((chip->hw_errors == 0) && (chip->stales == 0) 
-         && ((chip->temp > MAX_TEMP_CENTIGRADE) && (chip->temp < MIN_TEMP_CENTIGRADE)) 
+         && ((chip->temp < MAX_TEMP_CENTIGRADE) && (chip->temp > MIN_TEMP_CENTIGRADE)) 
         /* &&((chip->nVol < MAX_VOL) && (chip->nVol > MIN_VOL)) */
         && (chip->num_cores == ASIC_D88_CORE_NUM)){
         strcat(szInNormal,cLevelNormal);
