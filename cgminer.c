@@ -533,6 +533,10 @@ struct schedtime schedstart;
 struct schedtime schedstop;
 bool sched_paused;
 
+
+bool curr_is_nicehash_pool = false;
+
+
 static bool time_before(struct tm *tm1, struct tm *tm2)
 {
     if (tm1->tm_hour < tm2->tm_hour)
@@ -5240,6 +5244,7 @@ void switch_pools(struct pool *selected)
 
     currentpool = pools[pool_no];
     pool = currentpool;
+    curr_is_nicehash_pool = pool->is_nicehash_pool;
     cg_wunlock(&control_lock);
 
     if (pool != last_pool && pool_strategy != POOL_LOADBALANCE && pool_strategy != POOL_BALANCE) {

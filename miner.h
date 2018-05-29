@@ -1315,6 +1315,11 @@ struct stratum_work {
 #define RBUFSIZE 8192
 #define RECVSIZE (RBUFSIZE - 4)
 
+
+#define NICEHASH_POOL_URL_STR       "nicehash.com:"
+extern bool curr_is_nicehash_pool;
+
+
 struct pool {
     int pool_no;
     int prio;
@@ -1456,6 +1461,8 @@ struct pool {
     uint32_t current_height;
 
     struct timeval tv_lastwork;
+
+    bool is_nicehash_pool;      //true: nicehash pool, false: not nicehash pool.
 };
 
 #define GETWORK_MODE_TESTPOOL 'T'

@@ -23,9 +23,13 @@ struct pool_config g_pool_conf[3];
 struct A1_chain *chain[ASIC_CHAIN_NUM];
 
 const uint32_t nonce_step = 0x00100000;
+const uint32_t nonce_step_nicehash = 0x006667;
+
 
 //const uint8_t reg0d_default_value[] = {0x00, 0x00, 0xa0, 0x00, 0x3e, 0xc0, 0x80, 0x00, 0x10, 0x00, 0x00, 0x74};
 const uint8_t reg0d_default_value[] = {0x00, 0x00, 0xa0, 0x00, 0x3e, 0x80, 0x02, 0x00, 0x00, 0x08, 0x00, 0x64};
+
+#define END_NONCE_A8_GAP        24
 
 static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8_t *job)
 {
@@ -35,19 +39,40 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
     uint32_t start_nonce;
     unsigned char tmp_buf[128];
     unsigned char *wdata = work->data;
+    uint32_t end_nonce;
 
-    work_nonce = (work->data[42] << 24) + (work->data[41] << 16) + (work->data[40] << 8) + (work->data[39] << 0);
-    start_nonce = work_nonce + (nonce_step * (chip_id - 1));
+    if (curr_is_nicehash_pool == false)
+    {
+        work_nonce = (work->data[42] << 24) + (work->data[41] << 16) + (work->data[40] << 8) + (work->data[39] << 0);
+        start_nonce = work_nonce + (nonce_step * (chip_id - 1));
+    }
+    else
+    {
+        work_nonce = (work->data[41] << 16) + (work->data[40] << 8) + (work->data[39] << 0);
+        start_nonce = work_nonce + (nonce_step_nicehash * (chip_id - 1));
+    }
 
     // cmd
     job[0] = ((job_id & 0x0f) << 4) | CMD_WRITE_JOB;
     job[1] = chip_id;
 
-    // end nonce
-    job[2] = 0xff;
-    job[3] = 0xff;
-    job[4] = 0xff;
-    job[5] = 0xdb;
+    if (curr_is_nicehash_pool == false)
+    {
+        // end nonce
+        job[2] = 0xff;
+        job[3] = 0xff;
+        job[4] = 0xff;
+        job[5] = 0xdb;
+    }
+    else
+    {
+        // end nonce
+        end_nonce = start_nonce + nonce_step_nicehash - END_NONCE_A8_GAP;
+        job[2] = (uint8_t)(work->data[42] & 0xff);
+        job[3] = (uint8_t)((end_nonce >>  16) & 0xff);
+        job[4] = (uint8_t)((end_nonce >>  8) & 0xff) ;
+        job[5] = (uint8_t)((end_nonce >>  0) & 0xff);
+    }
         
     // target   
     job[6 + 0] = work->target[31];
@@ -66,7 +91,10 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
 
     // start nonce
     job[10 + 36] = (uint8_t)((start_nonce >>  0) & 0xff);
-    job[10 + 41] = (uint8_t)((start_nonce >> 24) & 0xff);
+    if (curr_is_nicehash_pool == false)
+        job[10 + 41] = (uint8_t)((start_nonce >> 24) & 0xff);
+    else
+        job[10 + 41] = (uint8_t)(work->data[42] & 0xff);
     job[10 + 42] = (uint8_t)((start_nonce >> 16) & 0xff);
     job[10 + 43] = (uint8_t)((start_nonce >>  8) & 0xff);
 

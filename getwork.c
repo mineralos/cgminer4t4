@@ -275,7 +275,10 @@ bool gen_getwork_work(struct pool *pool, json_t *job, bool firstjob)
         usleep(35000);
         work_temp = copy_work(work);
         local_work++;
-        work_temp->data[42] = (0x20 * i);
+        if (pool->is_nicehash_pool == false)
+            work_temp->data[42] = (0x20 * i);
+        else
+            work_temp->data[41] = (0x20 * i);
         cgtime(&work_temp->tv_staged);
         hash_push(work_temp);        
     }
@@ -560,10 +563,19 @@ bool login_getwork(struct pool *pool)
     const char *job;
     const char *id;
 
-    s = (char*) malloc(300 + strlen(pool->rpc_user) + strlen(pool->rpc_pass));
-    sprintf(s, "{\"method\": \"login\", \"params\": {"
+    s = (char*) malloc(300 + strlen(pool->rpc_user) + strlen(pool->rpc_pass));\
+    if (pool->is_nicehash_pool == false)
+    {
+        sprintf(s, "{\"method\": \"login\", \"params\": {"
             "\"login\": \"%s\", \"pass\": \"%s\", \"agent\": \"%s\"}, \"id\": 1}\n",
             pool->rpc_user, pool->rpc_pass, "cpuminer-opt/3.6.5");
+    }
+    else
+    {
+        sprintf(s, "{\"method\": \"login\", \"jsonrpc\": \"2.0\", \"params\": {"
+            "\"login\": \"%s\", \"pass\": \"%s\", \"agent\": \"%s\"}, \"id\": 1}\n",
+            pool->rpc_user, pool->rpc_pass, "XMRig/2.5.2");
+    }
             
     if (!stratum_send(pool, s, strlen(s))) {
         goto out;
@@ -685,10 +697,19 @@ static void *getwork_sthread(void *userdata)
         /* Give the stratum share a unique id */
         sshare->id = swork_id++;
         mutex_unlock(&sshare_lock);
-        
-        sprintf( s, "{\"method\": \"submit\", \"params\": "
-       "{\"id\": \"%s\", \"job_id\": \"%s\", \"nonce\": \"%s\", \"result\": \"%s\"},"
-       "\"id\":%d}\n", rpc2_id[pool->pool_no], work->job_id, noncehex, hashhex, sshare->id);
+
+        if (pool->is_nicehash_pool == false)
+        {
+            sprintf( s, "{\"method\": \"submit\", \"params\": "
+                "{\"id\": \"%s\", \"job_id\": \"%s\", \"nonce\": \"%s\", \"result\": \"%s\"},"
+                "\"id\":%d}\n", rpc2_id[pool->pool_no], work->job_id, noncehex, hashhex, sshare->id);
+        }
+        else
+        {
+            sprintf( s, "{\"method\": \"submit\",  \"jsonrpc\": \"2.0\", \"params\": "
+                "{\"id\": \"%s\", \"job_id\": \"%s\", \"nonce\": \"%s\", \"result\": \"%s\"},"
+                "\"id\":%d}\n", rpc2_id[pool->pool_no], work->job_id, noncehex, hashhex, sshare->id);
+        }
         
         /* Try resubmitting for up to 2 minutes if we fail to submit
          * once and the stratum pool nonce1 still matches suggesting
@@ -977,6 +998,12 @@ bool pool_active_getwork(struct pool *pool, bool pinging)
         if (!init) {
             bool ret; 
             ret = initiate_getwork(pool);
+            
+            if ( strstr(pool->rpc_url, NICEHASH_POOL_URL_STR) )
+                pool->is_nicehash_pool = true;
+            else
+                pool->is_nicehash_pool = false;
+
             ret = login_getwork(pool);
 
             if (ret) {
