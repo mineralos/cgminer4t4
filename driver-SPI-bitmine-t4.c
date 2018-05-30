@@ -451,8 +451,8 @@ void A1_detect(bool hotplug)
 
     //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
     sys_platform_debug_init(MCOMPAT_LOG_INFO);
-    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_T4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
-    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_T4, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
+    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
     mcompat_fan_speed_set(0, FAN_DEFAULT_SPEED);
     
