@@ -576,6 +576,13 @@ static int Ax_temp_compare(const void *a, const void *b)
 #define TEMP_UPDATE_CNT 60
 #define TEMP_UPDATE_INT_MS  1000
 
+
+#define DIFF_DEF		(100001)
+#define DIFF_1HR		(333356)
+#define DIFF_4HR		(666713 )
+#define DIFF_RUN		(2098180)
+
+
 static int64_t A1_scanwork(struct thr_info *thr)
 {
     struct cgpu_info *cgpu = thr->cgpu;
@@ -596,6 +603,8 @@ static int64_t A1_scanwork(struct thr_info *thr)
     uint8_t reg[REG_LENGTH];
     char noncehex[16];
     char hashhex[128];  
+    int64_t hashes = 0;
+    struct timeval now;
 
     //applog(LOG_DEBUG, "------------------ scan work -----------------");
     
@@ -604,6 +613,24 @@ static int64_t A1_scanwork(struct thr_info *thr)
         applog(LOG_WARNING, "A1_scanwork() cores num is 0");
         return 0;
     }
+
+
+    /* We start with low diff to speed up tuning and increase hashrate
+     * resolution reported and then increase diff after an hour to decrease
+     * load. */
+    cgtime(&now);
+    if (cgpu->drv->max_diff < DIFF_RUN) {
+    	int hours;
+
+    	hours = tdiff(&now, &cgpu->dev_start_tv) / 3600;
+    	if (hours >= 8)
+    		cgpu->drv->max_diff = DIFF_RUN;
+    	else if (hours >= 4 && cgpu->drv->max_diff < DIFF_4HR)
+    		cgpu->drv->max_diff = DIFF_4HR;
+    	else if (hours >= 1 && cgpu->drv->max_diff < DIFF_1HR)
+    		cgpu->drv->max_diff =DIFF_1HR;
+    }
+
     
     if(a1->last_temp_time + TEMP_UPDATE_INT_MS < get_current_ms())  
     {
@@ -731,6 +758,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
         //applog(LOG_INFO, "YEAH: %d: chip %d / job_id %d: nonce:%s hash:%s", cid, chip_id, job_id, noncehex, hashhex);
         
         chip->nonces_found++;
+        hashes += work->device_diff;
     }
 
     mutex_lock(&a1->lock);
@@ -799,7 +827,8 @@ static int64_t A1_scanwork(struct thr_info *thr)
     cgtime(&a1->tvScryptLast);
 
     //return (int64_t)(480.0 * (a1->pll) / 1000 * (a1->num_cores / 8.0) * (a1->tvScryptDiff.tv_usec / 1000.0));
-    return (int64_t)(520.0 * (a1->pll/ 1000.0) * (a1->num_cores / 8.0) * (a1->tvScryptDiff.tv_usec / 1000.0));
+    //return (int64_t)(520.0 * (a1->pll/ 1000.0) * (a1->num_cores / 8.0) * (a1->tvScryptDiff.tv_usec / 1000.0));
+    return hashes;
 }
 
 
@@ -941,4 +970,8 @@ struct device_drv bitmineA1_drv = {
     .flush_work = A1_flush_work,
     .get_api_stats = A1_api_stats,
     .get_statline_before = A1_get_statline_before,
+
+    /* Set to lowest diff we can reliably use to get accurate hashrates
+     * during tuning and initially. */
+    .max_diff = DIFF_DEF,
 };

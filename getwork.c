@@ -199,6 +199,8 @@ bool rpc2_job_decode(const json_t *job, struct work *work)
             free(work->job_id);
         
         work->job_id = strdup(rpc2_job_id);
+
+        work->work_difficulty = stratum_diff;
     }
     
     return true;
@@ -1031,8 +1033,6 @@ bool submit_nonce_hash(struct thr_info *thr, struct work *work, uint8_t *nonce, 
 
     if(fulltest(hash, work->target))
     {
-        int i;
-        
         work->nonce = (nonce[0] << 24) + (nonce[1] << 16) + (nonce[2] << 8) + (nonce[3] << 0);
         memcpy(work->hash, hash, 32);
         
@@ -1041,8 +1041,12 @@ bool submit_nonce_hash(struct thr_info *thr, struct work *work, uint8_t *nonce, 
     }
     else 
     {
+#if 0
         inc_hw_errors(thr);
         return false;
+#else
+        return true;
+#endif
     }
 }
 

@@ -6618,10 +6618,10 @@ void hashmeter(int thr_id, uint64_t hashes_done)
         cgpu->device_last_well = now_t;
         device_tdiff = tdiff(&total_tv_end, &cgpu->last_message_tv);
         copy_time(&cgpu->last_message_tv, &total_tv_end);
-        thr_mhs = (double)hashes_done / device_tdiff / 1000000;
+        thr_mhs = (double)hashes_done / device_tdiff / 1000;        //KHs
         applog(LOG_DEBUG, "[thread %d: %"PRIu64" hashes, %.1f mhash/sec]",
                thr_id, hashes_done, thr_mhs);
-        hashes_done /= 1000000;
+        hashes_done /= 1000;
 
         mutex_lock(&hash_lock);
         cgpu->total_mhashes += hashes_done;
