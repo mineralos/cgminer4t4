@@ -578,10 +578,9 @@ static int Ax_temp_compare(const void *a, const void *b)
 
 
 #define DIFF_DEF		(100001)
-#define DIFF_1HR		(333356)
-#define DIFF_4HR		(666713 )
-#define DIFF_RUN		(2098180)
-
+#define DIFF_1HR		(700076)
+#define DIFF_4HR		(1300323)
+#define DIFF_RUN		(2000450)
 
 static int64_t A1_scanwork(struct thr_info *thr)
 {

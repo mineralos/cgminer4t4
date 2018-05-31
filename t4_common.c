@@ -22,15 +22,14 @@ struct difficulty_stru
     uint8_t target_val[4];
 };
 
-#define DIFFICULTY_TBL_SIZE             6
+#define DIFFICULTY_TBL_SIZE             5
 const struct difficulty_stru difficulty_tbl[DIFFICULTY_TBL_SIZE] = 
 {
     /* difficulty,   target value */
     { 100001,      {0x00, 0x00, 0xA7, 0xC5}    },
-    { 333356,      {0x00, 0x00, 0x32, 0x54}    },
-    { 666713,      {0x00, 0x00, 0x19, 0x2A}    },
-    { 1333430,    {0x00, 0x00, 0x0C, 0x95}    },
-    { 2098180,    {0x00, 0x00, 0x07, 0xFF}    },
+    { 700076,      {0x00, 0x00, 0x17, 0xF7}    },
+    { 1300323,    {0x00, 0x00, 0x0C, 0xE7}    },
+    { 2000450,    {0x00, 0x00, 0x08, 0x63}    },
     { 2667680,    {0x00, 0x00, 0x06, 0x4A}    }
 };
 
