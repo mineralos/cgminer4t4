@@ -22,11 +22,10 @@ struct difficulty_stru
     uint8_t target_val[4];
 };
 
-#define DIFFICULTY_TBL_SIZE             7
-struct difficulty_stru difficulty_tbl[DIFFICULTY_TBL_SIZE] = 
+#define DIFFICULTY_TBL_SIZE             6
+const struct difficulty_stru difficulty_tbl[DIFFICULTY_TBL_SIZE] = 
 {
     /* difficulty,   target value */
-    { 15326,       {0x00, 0x04, 0x46, 0xB0}    },
     { 100001,      {0x00, 0x00, 0xA7, 0xC5}    },
     { 333356,      {0x00, 0x00, 0x32, 0x54}    },
     { 666713,      {0x00, 0x00, 0x19, 0x2A}    },
@@ -35,6 +34,7 @@ struct difficulty_stru difficulty_tbl[DIFFICULTY_TBL_SIZE] =
     { 2667680,    {0x00, 0x00, 0x06, 0x4A}    }
 };
 
+static uint8_t work_target_val[4] = {0};
 
 
 
@@ -62,7 +62,7 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
     unsigned char *wdata = work->data;
     uint32_t end_nonce;
     double sdiff = work->device_diff;
-    char *target = NULL;
+    uint8_t *target = NULL;
 
     if (curr_is_nicehash_pool == false)
     {
@@ -97,12 +97,22 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
         job[5] = (uint8_t)((end_nonce >>  0) & 0xff);
     }
 
-    target = difficulty_tbl[0].target_val;
-    for (i=DIFFICULTY_TBL_SIZE-1; i>=1; i--)
+
+    for (i=DIFFICULTY_TBL_SIZE-1; i>=0; i--)
     {
         if (sdiff >= difficulty_tbl[i].sdiff)
         {
             target = difficulty_tbl[i].target_val;
+            break;
+        }
+
+        if (i == 0)
+        {
+            work_target_val[0] = work->target[31];
+            work_target_val[1] = work->target[30];
+            work_target_val[2] = work->target[29];
+            work_target_val[3] = work->target[28];
+            target = work_target_val;
             break;
         }
     }
