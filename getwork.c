@@ -215,6 +215,8 @@ bool gen_getwork_work(struct pool *pool, json_t *job, bool firstjob)
     int i;
     struct work *work = make_work();
     struct work *work_temp;
+    unsigned int start_nonce_gap;
+
 #if 0
     if(pool != current_pool())
     {
@@ -272,15 +274,16 @@ bool gen_getwork_work(struct pool *pool, json_t *job, bool firstjob)
     pool->getwork_requested++;
     total_getworks++;
 
+    start_nonce_gap = (256+total_devices-1)/total_devices;
     for(i = 0; i < total_devices; i++)
     {
         usleep(35000);
         work_temp = copy_work(work);
         local_work++;
         if (pool->is_nicehash_pool == false)
-            work_temp->data[42] = (0x20 * i);
+            work_temp->data[42] = (start_nonce_gap * i);
         else
-            work_temp->data[41] = (0x20 * i);
+            work_temp->data[41] = (start_nonce_gap * i);
         cgtime(&work_temp->tv_staged);
         hash_push(work_temp);        
     }
