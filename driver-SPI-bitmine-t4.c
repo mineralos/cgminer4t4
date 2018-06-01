@@ -577,11 +577,6 @@ static int Ax_temp_compare(const void *a, const void *b)
 #define TEMP_UPDATE_INT_MS  1000
 
 
-#define DIFF_DEF		(100001)
-#define DIFF_1HR		(700076)
-#define DIFF_4HR		(1300323)
-#define DIFF_RUN		(2000450)
-
 static int64_t A1_scanwork(struct thr_info *thr)
 {
     struct cgpu_info *cgpu = thr->cgpu;
@@ -614,20 +609,20 @@ static int64_t A1_scanwork(struct thr_info *thr)
     }
 
 
-    /* We start with low diff to speed up tuning and increase hashrate
-     * resolution reported and then increase diff after an hour to decrease
+    /* We start with low diff to speed up hashrate
+     * calculation and then increase diff after an hour to decrease
      * load. */
-    cgtime(&now);
-    if (cgpu->drv->max_diff < DIFF_RUN) {
-    	int hours;
+    if (cgpu->drv->max_diff != ((double)0xffffffff))
+    {
+        int hours;
 
-    	hours = tdiff(&now, &cgpu->dev_start_tv) / 3600;
-    	if (hours >= 8)
-    		cgpu->drv->max_diff = DIFF_RUN;
-    	else if (hours >= 4 && cgpu->drv->max_diff < DIFF_4HR)
-    		cgpu->drv->max_diff = DIFF_4HR;
-    	else if (hours >= 1 && cgpu->drv->max_diff < DIFF_1HR)
-    		cgpu->drv->max_diff =DIFF_1HR;
+        cgtime(&now);
+        hours = tdiff(&now, &cgpu->dev_start_tv) / 3600;
+        if (hours >= DIFF_DEF_HOURS)
+        {
+            /* Set to the max double type value, so always device_diff = work_difficulty */
+            cgpu->drv->max_diff = ((double)0xffffffff);
+        }
     }
 
     

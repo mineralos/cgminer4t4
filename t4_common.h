@@ -79,6 +79,14 @@ typedef enum {
 } hardware_version_e;
 
 
+#define DIFF_DEF		(50000)
+#define DIFF_DEF_HOURS          1
+
+struct difficulty_stru
+{
+    double sdiff;
+    uint8_t target_val[4];
+};
 
 
 extern struct A1_chain *chain[ASIC_CHAIN_NUM];

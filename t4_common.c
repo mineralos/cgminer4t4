@@ -16,25 +16,9 @@
 #include "t4_common.h"
 
 
-struct difficulty_stru
-{
-    double sdiff;
-    uint8_t target_val[4];
-};
 
-#define DIFFICULTY_TBL_SIZE             5
-const struct difficulty_stru difficulty_tbl[DIFFICULTY_TBL_SIZE] = 
-{
-    /* difficulty,   target value */
-    { 100001,      {0x00, 0x00, 0xA7, 0xC5}    },
-    { 700076,      {0x00, 0x00, 0x17, 0xF7}    },
-    { 1300323,    {0x00, 0x00, 0x0C, 0xE7}    },
-    { 2000450,    {0x00, 0x00, 0x08, 0x63}    },
-    { 2667680,    {0x00, 0x00, 0x06, 0x4A}    }
-};
 
-static uint8_t work_target_val[4] = {0};
-
+const struct difficulty_stru difficulty = { DIFF_DEF,      {0x00, 0x01, 0x4F, 0x8B}    };
 
 
 struct pool_config g_pool_run[3];
@@ -60,8 +44,6 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
     unsigned char tmp_buf[128];
     unsigned char *wdata = work->data;
     uint32_t end_nonce;
-    double sdiff = work->device_diff;
-    uint8_t *target = NULL;
 
     if (curr_is_nicehash_pool == false)
     {
@@ -97,38 +79,27 @@ static void create_job(uint8_t chip_id, uint8_t job_id, struct work *work, uint8
     }
 
 
-    for (i=DIFFICULTY_TBL_SIZE-1; i>=0; i--)
+    /* work->work_difficulty, job real difficulty received from pool 
+         work->device_diff,       the difficulty (DIFF_DEF) applied in chip now
+         Low difficulty can make hashrate calculation faster. 
+         Low difficulty only applied in the first hour after start, after that, apply the real difficulty.
+    */
+    if ( work->device_diff != work->work_difficulty )
     {
-        if (sdiff >= difficulty_tbl[i].sdiff)
-        {
-            target = difficulty_tbl[i].target_val;
-            break;
-        }
-
-        if (i == 0)
-        {
-            work_target_val[0] = work->target[31];
-            work_target_val[1] = work->target[30];
-            work_target_val[2] = work->target[29];
-            work_target_val[3] = work->target[28];
-            target = work_target_val;
-            break;
-        }
+        // target, apply DIFF_DEF difficulty to chip
+        job[6 + 0] = difficulty.target_val[0];
+        job[6 + 1] = difficulty.target_val[1];
+        job[6 + 2] = difficulty.target_val[2];
+        job[6 + 3] = difficulty.target_val[3];
     }
-
-#if 1
-    // target
-    job[6 + 0] = target[0];
-    job[6 + 1] = target[1];
-    job[6 + 2] = target[2];
-    job[6 + 3] = target[3];
-#else
-    // target   
-    job[6 + 0] = work->target[31];
-    job[6 + 1] = work->target[30];
-    job[6 + 2] = work->target[29];
-    job[6 + 3] = work->target[28];      
-#endif
+    else
+    {
+        // target, apply job real difficulty to chip 
+        job[6 + 0] = work->target[31];
+        job[6 + 1] = work->target[30];
+        job[6 + 2] = work->target[29];
+        job[6 + 3] = work->target[28];    
+    }
         
     // data
     for(i = 0; i < 76; i = i + 4)
