@@ -274,7 +274,9 @@ bool gen_getwork_work(struct pool *pool, json_t *job, bool firstjob)
     pool->getwork_requested++;
     total_getworks++;
 
-    start_nonce_gap = (256+total_devices-1)/total_devices;
+    if (total_devices != 0)
+        start_nonce_gap = (256+total_devices-1)/total_devices;
+    
     for(i = 0; i < total_devices; i++)
     {
         usleep(35000);
