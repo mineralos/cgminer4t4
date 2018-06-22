@@ -19,6 +19,8 @@
 
 #define A4_PLL(prediv,fbdiv,postdiv) ((prediv<<(89-64))|fbdiv<<(80-64)|0b010<<(77-64)|postdiv<<(70-64))
 
+#define PLL_LV_NUM (118)
+
 
 typedef enum
 {
@@ -110,6 +112,9 @@ bool Ax_clock_setpll(struct A1_chain *a1, int pllClkIdx);
 
 bool Ax_clock_setpll_by_step(struct A1_chain *a1, int pllClkIdx);
 
+
+extern const int g_pll_list[PLL_LV_NUM];
+extern const uint8_t g_pll_regs[PLL_LV_NUM][12];
 
 
 #endif

@@ -127,6 +127,7 @@ bool vid_pll_one_detect(struct A1_chain *a1, struct Test_bench *ptest)
     int i;
     int pllindex;
     uint8_t buffer[64];
+    uint8_t result[16] = {0};
 
     //mcompat_hw_reset(a1->chain_id);
 
@@ -137,7 +138,7 @@ bool vid_pll_one_detect(struct A1_chain *a1, struct Test_bench *ptest)
     mcompat_set_spi_speed(a1->chain_id, 2);
     usleep(10000);
     
-    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
+    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST, result))
     {
         applog(LOG_WARNING, "cmd reset fail");
         return false;

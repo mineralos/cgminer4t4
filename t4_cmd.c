@@ -76,6 +76,7 @@ void hexdump_error(char *prefix, uint8_t *buff, int len)
 }
 
 
+#if 0
 unsigned char mcompat_cmd_resetall(unsigned char chain_id, unsigned char chip_id)
 {
     unsigned char buff_in[16];
@@ -97,5 +98,6 @@ unsigned char mcompat_cmd_resetjob(unsigned char chain_id, unsigned char chip_id
     
     return mcompat_cmd_reset(chain_id, chip_id, buff_in, buff_out);
 }
+#endif
 
 

@@ -637,12 +637,13 @@ int mcompat_chain_detect(struct A1_chain *a1)
     uint8_t buffer[64];
     int pllindex;
     int chip_num;
+    uint8_t result[16] = {0};
 
     //set_spi_speed(1500000);
     mcompat_set_spi_speed(a1->chain_id, 2);
     usleep(10000);
     
-    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST))
+    if(!mcompat_cmd_resetall(a1->chain_id, ADDR_BROADCAST, result))
     {
         applog(LOG_WARNING, "cmd reset fail");
         goto failure;

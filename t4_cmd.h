@@ -113,9 +113,9 @@ struct A1_chain {
     int bin3_test;
 };
 
-unsigned char mcompat_cmd_resetall(unsigned char chain_id, unsigned char chip_id);
+//unsigned char mcompat_cmd_resetall(unsigned char chain_id, unsigned char chip_id);
 
-unsigned char mcompat_cmd_resetjob(unsigned char chain_id, unsigned char chip_id);
+//unsigned char mcompat_cmd_resetjob(unsigned char chain_id, unsigned char chip_id);
 
 void hexdump_error(char *prefix, uint8_t *buff, int len);
 void hexdump(char *prefix, uint8_t *buff, int len);
