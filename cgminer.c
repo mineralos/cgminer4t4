@@ -360,14 +360,14 @@ int opt_voltage6 = 175;
 int opt_voltage7 = 175;
 int opt_voltage8 = 175;
 
-int opt_A1Pll1 = 1000;
-int opt_A1Pll2 = 1000;
-int opt_A1Pll3 = 1000;
-int opt_A1Pll4 = 1000;
-int opt_A1Pll5 = 1000;
-int opt_A1Pll6 = 1000;
-int opt_A1Pll7 = 1000;
-int opt_A1Pll8 = 1000;
+int opt_A1Pll1 = 1100;
+int opt_A1Pll2 = 1100;
+int opt_A1Pll3 = 1100;
+int opt_A1Pll4 = 1100;
+int opt_A1Pll5 = 1100;
+int opt_A1Pll6 = 1100;
+int opt_A1Pll7 = 1100;
+int opt_A1Pll8 = 1100;
 
 
 int opt_fanspeed = 1;
@@ -8660,6 +8660,7 @@ void flush_queue(struct cgpu_info *cgpu)
     }
 }
 
+extern void overheated_check(struct thr_info *thr);
 /* This version of hash work is for devices that are fast enough to always
  * perform a full nonce range and need a queue to maintain the device busy.
  * Work creation and destruction is not done from within this function
@@ -8691,6 +8692,7 @@ void hash_queued_work(struct thr_info *mythr)
         }
         
         
+        overheated_check(mythr);
 #if 0       
         hashes = drv->scanwork(mythr);
         
@@ -10737,6 +10739,8 @@ begin_bench:
             mcompat_fan_detect();
         }
 #endif
+
+#if 0
         if(g_miner_state == 1)
         {
             // 
@@ -10753,6 +10757,7 @@ begin_bench:
                 mcompat_fan_speed_set(0, (opt_fanspeed * A8_FAN_STEP_DUTY));
             }
         }
+#endif
         
         //
         if(g_reset_delay != 0xffff)

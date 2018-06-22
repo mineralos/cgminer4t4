@@ -20,7 +20,6 @@
 #include "miner.h"
 #include "util.h"
 
-#include "t4_fan.h"
 #include "t4_cmd.h"
 #include "t4_clock.h"
 #include "t4_common.h"
@@ -32,6 +31,11 @@
 #include "mcompat_fan.h"
 #include "mcompat_lib.h"
 
+#include "mcompat_chain.h"
+#include "mcompat_tempctrl.h"
+#include "mcompat_fanctrl.h"
+
+
 static int s_log_cnt[ASIC_CHAIN_NUM] = {0};
 static char s_log[ASIC_CHAIN_NUM][ASIC_CHIP_NUM][256];
 
@@ -40,13 +44,14 @@ static int s_temp_cnt[ASIC_CHAIN_NUM] = {0};
 int g_hwver;
 int g_mtype;
 int g_ctype;
-int g_auto_fan;
+int g_auto_fan = 1;
 int g_fan_speed = 1;
 int g_reset_delay = 0xffff;
 int g_miner_state = 0;
 
 int g_chip_temp[ASIC_CHAIN_NUM][ASIC_CHIP_NUM];
 
+static volatile uint8_t g_debug_stats[ASIC_CHAIN_NUM] = {0};
 
 
 /* one global board_selector and spi context is enough */
@@ -107,6 +112,7 @@ void set_cgpu_init_value(struct cgpu_info *cgpu)
     cgpu->core_num = a1->num_cores;
 }
 
+#if 0
 void set_cgpu(struct cgpu_info *cgpu)
 {
     struct A1_chain *a1 = cgpu->device_data;
@@ -125,6 +131,7 @@ void set_cgpu(struct cgpu_info *cgpu)
     cgpu->chip_num = a1->num_active_chips;
     cgpu->core_num = a1->num_cores; 
 }
+#endif
 
 /*
  * for now, we have one global config, defaulting values:
@@ -196,6 +203,7 @@ void software_test(void)
 #endif
 }
 
+extern int g_chain_alive[MCOMPAT_CONFIG_MAX_CHAIN_NUM];
 /********** driver interface **********************/
 int init_one_A1_chain(struct A1_chain *a1)
 {
@@ -209,12 +217,26 @@ int init_one_A1_chain(struct A1_chain *a1)
         mcompat_chain_power_down(a1->chain_id);
         return -1;
     }
-    
+
+#if 0
+    a1->num_chips = mcompat_chain_preinit(a1->chain_id);
+    if (a1->num_chips == 0) {
+    	return 1;
+    }
+
+    if (!mcompat_chain_set_pll(a1->chain_id, opt_A1Pll1, opt_voltage1)) {
+    	return 1;
+    }
+
+    mcompat_chain_init(a1->chain_id, SPI_SPEED_6250K, false);
+#else
     a1->num_chips = mcompat_chain_detect(a1);
     if (a1->num_chips < 1)
     {
         return 1;
     }
+    g_chain_alive[a1->chain_id] = 1;
+#endif
     
     usleep(10000);
 
@@ -413,6 +435,10 @@ void A1_detect(bool hotplug)
     
     applog(LOG_WARNING, "A1_detect()");
 
+    /* Register PLL map config */
+    mcompat_chain_set_pllcfg(g_pll_list, g_pll_regs, PLL_LV_NUM);
+
+
     /* parse bimine-a1-options */
     if (opt_bitmine_a1_options != NULL && parsed_config_options == NULL) {
         int ref_clk = 0;
@@ -446,27 +472,49 @@ void A1_detect(bool hotplug)
     //g_mtype = misc_get_miner_type();
     g_ctype = CHIP_TYPE_D88;
 
-    // only for test
-    //hw_test();
+
 
     //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
     sys_platform_debug_init(MCOMPAT_LOG_INFO);
     //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
     sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
-    mcompat_fan_speed_set(0, FAN_DEFAULT_SPEED);
+    /* Init temp ctrl */
+    c_temp_cfg tmp_cfg;
+    mcompat_tempctrl_get_defcfg(&tmp_cfg);
+    tmp_cfg.tmp_min      = -40;     // min value of temperature
+    tmp_cfg.tmp_max      = 125;     // max value of temperature
+    tmp_cfg.tmp_target   = 55;      // target temperature
+    tmp_cfg.tmp_thr_lo   = 30;      // low temperature threshold
+    tmp_cfg.tmp_thr_hi   = 80;      // high temperature threshold
+    tmp_cfg.tmp_thr_warn = 85;     // warning threshold
+    tmp_cfg.tmp_thr_pd   = 90;     // power down threshold
+    tmp_cfg.tmp_exp_time = 2000;   // temperature expiring time (ms)
+    mcompat_tempctrl_init(&tmp_cfg);
+
+    /* Start fan ctrl thread */
+    c_fan_cfg fan_cfg;
+    mcompat_fanctrl_get_defcfg(&fan_cfg);
+    fan_cfg.preheat = false;
+    fan_cfg.fan_mode = g_auto_fan ? FAN_MODE_AUTO : FAN_MODE_MANUAL;
+    fan_cfg.fan_speed = 10;
+    fan_cfg.fan_speed_target = 10;
+    mcompat_fanctrl_init(&fan_cfg);
+
+    pthread_t tid;
+    pthread_create(&tid, NULL, mcompat_fanctrl_thread, NULL);
+
+
+
     
     mcompat_chain_power_down_all();
     chain_strcut_init();
-    mcompat_fan_detect_init();
 
     sleep(5);
 
     mcompat_chain_set_vid_all();
     mcompat_chain_power_on_all();
 
-    // only for test
-    //software_test();
 
     // preheat
     miner_preheat(opt_heattime);
@@ -481,6 +529,7 @@ void A1_detect(bool hotplug)
         return;
     }
 
+#if 0
     if(g_ctype == CHIP_TYPE_T88)
     {
         g_fan_speed = opt_fanspeed;
@@ -490,6 +539,7 @@ void A1_detect(bool hotplug)
     {
         mcompat_fan_auto_init(FAN_DEFAULT_SPEED);
     }
+#endif
     
     // init finshed
     g_miner_state = 1;
@@ -577,6 +627,95 @@ static int Ax_temp_compare(const void *a, const void *b)
 #define TEMP_UPDATE_INT_MS  1000
 
 
+static bool overheated_flag[ASIC_CHAIN_NUM] = {0};
+static void overheated_blinking(int cid)
+{
+    /* Mark chain as overhteated */
+    overheated_flag[cid] = true;
+    
+    // block thread (scan_thread) and blink led
+    while (42)
+    {
+        mcompat_set_led(cid, LED_OFF);
+        cgsleep_ms(500);
+        mcompat_set_led(cid, LED_ON);
+        cgsleep_ms(500);
+    }
+}
+
+void overheated_check(struct thr_info *thr)
+{
+    struct cgpu_info *cgpu = thr->cgpu;
+    struct A1_chain *a1 = cgpu->device_data;
+    int cid = a1->chain_id;
+    
+    // block thread (miner_thread) if overheated
+    if (unlikely(overheated_flag[cid]))
+   {   
+        while (42)
+            ;
+    }
+}
+
+
+
+static void get_chain_temperature(struct thr_info *thr)
+{
+    struct cgpu_info *cgpu = thr->cgpu;
+    struct A1_chain *a1 = cgpu->device_data;
+    int cid = a1->chain_id; 
+
+    /* Temperature control */
+    int chain_temp_status;
+
+    chain_temp_status = mcompat_tempctrl_update_chain_temp(cid);
+    //applog(LOG_WARNING, "status=%d", chain_temp_status);
+    if (chain_temp_status != TEMP_INVALID)
+    {
+        cgpu->temp_min  = (double)g_chain_tmp[cid].tmp_lo;
+        cgpu->temp_max = (double)g_chain_tmp[cid].tmp_hi;
+        cgpu->temp          = (double)g_chain_tmp[cid].tmp_avg;
+        //applog(LOG_WARNING, "min=%f, max=%f, temp=%f", cgpu->temp_min, cgpu->temp_max, cgpu->temp);
+    }
+
+    if (chain_temp_status == TEMP_SHUTDOWN)
+    {
+        /* Shutdown chain */
+        applog(LOG_ERR, "DANGEROUS TEMPERATURE(%.0f): power down chain %d",
+			cgpu->temp_max, cid);
+        mcompat_chain_power_down(cid);
+        cgpu->status = LIFE_DEAD;
+        cgtime(&thr->sick);
+
+        /* Function doesn't currently return */
+        overheated_blinking(cid);
+    }
+}
+
+extern volatile c_fan_cfg	g_fan_cfg;
+static void get_chip_temperatures(struct cgpu_info *cgpu)
+{
+    struct A1_chain *a1 = cgpu->device_data;
+
+    int i;
+    int temp[ASIC_CHIP_NUM] = {0};
+    c_temp chain_tmp = {0};
+
+    mcompat_get_chip_temp_for_A8(a1->chain_id, temp);
+
+    for (i = 0; i < a1->num_active_chips; i++)
+        if ((temp[i]>=-40) && (temp[i] <= 125))
+    	    a1->chips[i].temp = temp[i];
+
+    applog(LOG_WARNING, "chain_id %d, temp[0] %d, %d", a1->chain_id, a1->chips[0].temp, temp[0]);
+
+    cgpu->fan_duty = g_fan_cfg.fan_speed;
+
+    cgpu->chip_num = a1->num_active_chips;
+    cgpu->core_num = a1->num_cores;
+}
+
+
 static int64_t A1_scanwork(struct thr_info *thr)
 {
     struct cgpu_info *cgpu = thr->cgpu;
@@ -625,79 +764,8 @@ static int64_t A1_scanwork(struct thr_info *thr)
         }
     }
 
-    
-    if(a1->last_temp_time + TEMP_UPDATE_INT_MS < get_current_ms())  
-    {
-        // update cgpu_info
-        s_temp_cnt[cid]++;
-        if(s_temp_cnt[cid] >= TEMP_UPDATE_CNT)
-        {
-            int sum = 0;
-            
-            //applog(LOG_WARNING, "s_temp_cnt = %d", s_temp_cnt[cid]);
-            memset(g_chip_temp[cid], 0, sizeof(g_chip_temp[cid][0]) * ASIC_CHIP_NUM);
-            for (i = a1->num_active_chips; i > 0; i--)
-            {
-                struct A1_chip *chip = &a1->chips[i - 1];
 
 
-                g_chip_temp[cid][i - 1] = get_chip_temperature(a1->chain_id, i);
-                chip->temp = temp_to_centigrade(g_chip_temp[cid][i - 1]);
-            }
-            qsort(g_chip_temp[cid], ASIC_CHIP_NUM, sizeof(g_chip_temp[cid][0]), Ax_temp_compare);
-            /*
-            applog(LOG_WARNING, "the temp fifo: ");
-            for(i = 0; i < ASIC_CHIP_NUM; i++)
-            {
-                applog(LOG_WARNING, "%d ", g_chip_temp[cid][i]);
-            }
-            */
-            sum += g_chip_temp[cid][0];
-            sum += g_chip_temp[cid][1];
-            sum += g_chip_temp[cid][2];
-            sum += g_chip_temp[cid][ASIC_CHIP_NUM - 3];
-            sum += g_chip_temp[cid][ASIC_CHIP_NUM - 2];
-            sum += g_chip_temp[cid][ASIC_CHIP_NUM - 1];
-
-            mutex_lock(&g_temp_update_lock);
-            g_temp[cid].temp_highest[0] = g_chip_temp[cid][0];
-            g_temp[cid].temp_highest[1] = g_chip_temp[cid][1];
-            g_temp[cid].temp_highest[2] = g_chip_temp[cid][2];
-
-            g_temp[cid].temp_lowest[0] = g_chip_temp[cid][ASIC_CHIP_NUM - 1];
-            g_temp[cid].temp_lowest[1] = g_chip_temp[cid][ASIC_CHIP_NUM - 2];
-            g_temp[cid].temp_lowest[2] = g_chip_temp[cid][ASIC_CHIP_NUM - 3];
-            
-            g_temp[cid].final_temp_avg = sum / 6;
-
-            applog(LOG_INFO, "chain%d ||%d %d %d||%d %d %d||%d", 
-                cid, temp_to_centigrade(g_temp[cid].temp_highest[0]), 
-                temp_to_centigrade(g_temp[cid].temp_highest[1]), temp_to_centigrade(g_temp[cid].temp_highest[2]), 
-                temp_to_centigrade(g_temp[cid].temp_lowest[0]), temp_to_centigrade(g_temp[cid].temp_lowest[1]), 
-                temp_to_centigrade(g_temp[cid].temp_lowest[2]), temp_to_centigrade(g_temp[cid].final_temp_avg));
-
-            g_temp_update_flag = g_temp_update_flag | (0x01 << cid);
-            mutex_unlock(&g_temp_update_lock); 
-            
-            set_cgpu(cgpu);
-            s_temp_cnt[cid] = 0;
-        }
-
-        // for log
-        s_log_cnt[cid]++;
-        if(s_log_cnt[cid] > LOG_SAVE_CNT)
-        {
-            for (i = a1->num_active_chips; i > 0; i--)
-            {
-                struct A1_chip *chip = &a1->chips[i - 1];
-                dm_Log_Save(chip, cid, i);
-            }
-            dm_log_print(cid, s_log[cid], ASIC_CHIP_NUM * 256);
-            s_log_cnt[cid] = 0;
-        }
-        
-        a1->last_temp_time = get_current_ms();  
-    }
 
     /* poll queued results */
     while (true)
@@ -769,8 +837,9 @@ static int64_t A1_scanwork(struct thr_info *thr)
         struct work *work;
         work = wq_dequeue(&a1->active_wq);
         if (work != NULL) 
-        {           
-            mcompat_cmd_resetjob(a1->chain_id, 0);
+        {
+            uint8_t result[16] = {0};
+            mcompat_cmd_resetjob(a1->chain_id, 0, result);
             usleep(100);
             
             for (i = a1->num_active_chips; i > 0; i--) 
@@ -799,6 +868,19 @@ static int64_t A1_scanwork(struct thr_info *thr)
         }
     }
 
+
+    get_chain_temperature(thr);
+    
+    /* read chip temperatures and voltages */
+    if (g_debug_stats[cid]) 
+    {
+        cgsleep_ms(1);
+        get_chip_temperatures(cgpu);
+        //get_voltages(t1);
+        g_debug_stats[cid] = 0;
+    }
+
+
     mutex_unlock(&a1->lock);
   
     check_disabled_chips(a1);
@@ -816,9 +898,11 @@ static int64_t A1_scanwork(struct thr_info *thr)
     
     //mcompat_cmd_auto_nonce(a1->chain_id, 1, RES_LENGTH);
 
+#if 0
     cgtime(&a1->tvScryptCurr);
     timersub(&a1->tvScryptCurr, &a1->tvScryptLast, &a1->tvScryptDiff);
     cgtime(&a1->tvScryptLast);
+#endif
 
     //return (int64_t)(480.0 * (a1->pll) / 1000 * (a1->num_cores / 8.0) * (a1->tvScryptDiff.tv_usec / 1000.0));
     //return (int64_t)(520.0 * (a1->pll/ 1000.0) * (a1->num_cores / 8.0) * (a1->tvScryptDiff.tv_usec / 1000.0));
@@ -951,6 +1035,23 @@ static struct api_data *A1_api_stats(struct cgpu_info *cgpu)
 	return root;
 }
 
+static struct api_data *A1_api_debug(struct cgpu_info *cgpu)
+{
+	struct A1_chain *a1 = cgpu->device_data;
+	int timeout = 1000;
+
+	g_debug_stats[a1->chain_id] = 1;
+
+	// Wait for g_debug_stats cleared or timeout
+	while (g_debug_stats[a1->chain_id] && timeout) {
+		timeout -= 10;
+		cgsleep_ms(10);
+	}
+
+	return A1_api_stats(cgpu);
+}
+
+
 
 struct device_drv bitmineA1_drv = {
     .drv_id = DRIVER_bitmineA1,
@@ -963,6 +1064,7 @@ struct device_drv bitmineA1_drv = {
     .queue_full = A1_queue_full,
     .flush_work = A1_flush_work,
     .get_api_stats = A1_api_stats,
+    .get_api_debug = A1_api_debug,
     .get_statline_before = A1_get_statline_before,
 
     /* Set to lowest diff we can reliably use to get accurate hashrates
