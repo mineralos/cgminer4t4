@@ -355,6 +355,7 @@ struct device_drv {
     void (*get_statline_before)(char *, size_t, struct cgpu_info *);
     void (*get_statline)(char *, size_t, struct cgpu_info *);
     struct api_data *(*get_api_stats)(struct cgpu_info *);
+    struct api_data *(*get_api_debug)(struct cgpu_info *);
     bool (*get_stats)(struct cgpu_info *);
     void (*identify_device)(struct cgpu_info *); // e.g. to flash a led
     char *(*set_device)(struct cgpu_info *, char *option, char *setting, char *replybuf);
