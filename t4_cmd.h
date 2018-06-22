@@ -99,10 +99,12 @@ struct A1_chain {
     int last_check_time;    
     int work_start_delay;
 
+#if 0
     struct timeval tvScryptLast;
     struct timeval tvScryptCurr;
     struct timeval tvScryptDiff;
-    
+#endif
+
     uint32_t vid;
     uint32_t pll;
     bool VidOptimal; // We've stopped tuning voltage
