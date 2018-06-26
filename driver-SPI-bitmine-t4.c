@@ -47,7 +47,7 @@ int g_ctype;
 int g_auto_fan = 1;
 int g_fan_speed = 1;
 int g_reset_delay = 0xffff;
-int g_miner_state = 0;
+//int g_miner_state = 0;
 
 int g_chip_temp[ASIC_CHAIN_NUM][ASIC_CHIP_NUM];
 
@@ -435,10 +435,6 @@ void A1_detect(bool hotplug)
     
     applog(LOG_WARNING, "A1_detect()");
 
-    /* Register PLL map config */
-    mcompat_chain_set_pllcfg(g_pll_list, g_pll_regs, PLL_LV_NUM);
-
-
     /* parse bimine-a1-options */
     if (opt_bitmine_a1_options != NULL && parsed_config_options == NULL) {
         int ref_clk = 0;
@@ -486,9 +482,9 @@ void A1_detect(bool hotplug)
     tmp_cfg.tmp_max      = 125;     // max value of temperature
     tmp_cfg.tmp_target   = 55;      // target temperature
     tmp_cfg.tmp_thr_lo   = 30;      // low temperature threshold
-    tmp_cfg.tmp_thr_hi   = 80;      // high temperature threshold
-    tmp_cfg.tmp_thr_warn = 85;     // warning threshold
-    tmp_cfg.tmp_thr_pd   = 90;     // power down threshold
+    tmp_cfg.tmp_thr_hi   = 85;      // high temperature threshold
+    tmp_cfg.tmp_thr_warn = 90;     // warning threshold
+    tmp_cfg.tmp_thr_pd   = 95;     // power down threshold
     tmp_cfg.tmp_exp_time = 2000;   // temperature expiring time (ms)
     mcompat_tempctrl_init(&tmp_cfg);
 
@@ -506,7 +502,9 @@ void A1_detect(bool hotplug)
 
 
 
-    
+    /* Register PLL map config */
+    mcompat_chain_set_pllcfg(g_pll_list, g_pll_regs, PLL_LV_NUM);
+
     mcompat_chain_power_down_all();
     chain_strcut_init();
 
@@ -542,8 +540,8 @@ void A1_detect(bool hotplug)
 #endif
     
     // init finshed
-    g_miner_state = 1;
-    
+    //g_miner_state = 1;
+
     applog(LOG_INFO, "A1 dectect finshed");
 }
 
@@ -690,6 +688,10 @@ static void get_chain_temperature(struct thr_info *thr)
         /* Function doesn't currently return */
         overheated_blinking(cid);
     }
+
+    cgpu->fan_duty = g_fan_cfg.fan_speed;
+    cgpu->chip_num = a1->num_active_chips;
+    cgpu->core_num = a1->num_cores;
 }
 
 extern volatile c_fan_cfg	g_fan_cfg;
@@ -701,18 +703,13 @@ static void get_chip_temperatures(struct cgpu_info *cgpu)
     int temp[ASIC_CHIP_NUM] = {0};
     c_temp chain_tmp = {0};
 
-    mcompat_get_chip_temp_for_A8(a1->chain_id, temp);
+    mcompat_get_chip_temp(a1->chain_id, temp);
 
     for (i = 0; i < a1->num_active_chips; i++)
         if ((temp[i]>=-40) && (temp[i] <= 125))
     	    a1->chips[i].temp = temp[i];
 
     applog(LOG_WARNING, "chain_id %d, temp[0] %d, %d", a1->chain_id, a1->chips[0].temp, temp[0]);
-
-    cgpu->fan_duty = g_fan_cfg.fan_speed;
-
-    cgpu->chip_num = a1->num_active_chips;
-    cgpu->core_num = a1->num_cores;
 }
 
 
@@ -979,6 +976,7 @@ static struct api_data *A1_api_stats(struct cgpu_info *cgpu)
 	struct api_data *root = NULL;
 	char s[32];
 	int i;
+	int fan_speed = g_fan_cfg.fan_speed;
 
 	ROOT_ADD_API(int, "Chain ID", t1->chain_id, false);
 	ROOT_ADD_API(int, "Num chips", t1->num_chips, false);
@@ -991,7 +989,7 @@ static struct api_data *A1_api_stats(struct cgpu_info *cgpu)
 		sprintf(s, "Temp prewarn %d", i);
 		ROOT_ADD_API(int, s, cgpu->temp_prewarn[i], false);
 	}
-	ROOT_ADD_API(int, "Fan duty", cgpu->fan_duty, false);
+	ROOT_ADD_API(int, "Fan duty", fan_speed, false);
     //ROOT_ADD_API(bool, "FanOptimal", g_fan_ctrl.optimal, false);
 	ROOT_ADD_API(int, "iVid", t1->vid, false);
 	ROOT_ADD_API(bool, "VidOptimal", t1->VidOptimal, false);
