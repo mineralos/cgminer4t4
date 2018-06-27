@@ -482,9 +482,9 @@ void A1_detect(bool hotplug)
     tmp_cfg.tmp_max      = 125;     // max value of temperature
     tmp_cfg.tmp_target   = 55;      // target temperature
     tmp_cfg.tmp_thr_lo   = 30;      // low temperature threshold
-    tmp_cfg.tmp_thr_hi   = 85;      // high temperature threshold
-    tmp_cfg.tmp_thr_warn = 90;     // warning threshold
-    tmp_cfg.tmp_thr_pd   = 95;     // power down threshold
+    tmp_cfg.tmp_thr_hi   = 75;      // high temperature threshold
+    tmp_cfg.tmp_thr_warn = 80;     // warning threshold
+    tmp_cfg.tmp_thr_pd   = 85;     // power down threshold
     tmp_cfg.tmp_exp_time = 2000;   // temperature expiring time (ms)
     mcompat_tempctrl_init(&tmp_cfg);
 
