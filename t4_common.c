@@ -216,7 +216,8 @@ bool abort_work(struct A1_chain *a1)
 {
     applog(LOG_INFO, "Start to reset ");
     
-    return mcompat_cmd_resetjob(a1->chain_id, CHIP_ID_BROADCAST);
+    //return mcompat_cmd_resetjob(a1->chain_id, CHIP_ID_BROADCAST);
+    return true;
 }
 
 
