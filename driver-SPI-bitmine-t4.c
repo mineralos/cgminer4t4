@@ -473,7 +473,8 @@ void A1_detect(bool hotplug)
     //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
     sys_platform_debug_init(MCOMPAT_LOG_INFO);
     //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
-    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+    //sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+    sys_platform_init(PLATFORM_SOC_HUB, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
 
     /* Init temp ctrl */
     c_temp_cfg tmp_cfg;
@@ -709,7 +710,7 @@ static void get_chip_temperatures(struct cgpu_info *cgpu)
         if ((temp[i]>=-40) && (temp[i] <= 125))
     	    a1->chips[i].temp = temp[i];
 
-    applog(LOG_WARNING, "chain_id %d, temp[0] %d, %d", a1->chain_id, a1->chips[0].temp, temp[0]);
+    //applog(LOG_WARNING, "chain_id %d, temp[0] %d, %d, fan duty %d", a1->chain_id, a1->chips[0].temp, temp[0], g_fan_cfg.fan_speed);
 }
 
 

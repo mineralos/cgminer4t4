@@ -76,6 +76,7 @@ typedef enum {
 	HARDWARE_VERSION_NONE = 0x00,
 	HARDWARE_VERSION_G9 = 0x09,
 	HARDWARE_VERSION_G19 = 0x13,
+	HARDWARE_VERSION_SOC = 0x15,
 } hardware_version_e;
 
 

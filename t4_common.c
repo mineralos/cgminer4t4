@@ -882,7 +882,7 @@ int read_cgminer_config(void)
     return 0;   
 }
 
-
+#if 0
 int g_last_temp_min = T4_TEMP_LOW_INIT;
 int g_last_temp_max = T4_TEMP_HIGH_INIT;
 static int s_last_temp_update_time = 0;
@@ -904,6 +904,7 @@ void mcompat_rand_temp_update(void)
         s_last_temp_update_time = get_current_ms();
     }
 }
+#endif
 
 
 hardware_version_e inno_get_hwver(void)
@@ -927,6 +928,10 @@ hardware_version_e inno_get_hwver(void)
 	}else if (strstr(buffer, "G19") != 0) {
 		version = HARDWARE_VERSION_G19;
 		applog(LOG_INFO, "hardware version is G19");
+        }else if (strstr(buffer, "SOC") != 0) {
+            version = HARDWARE_VERSION_SOC;
+            applog(LOG_INFO, "hardware version is SOC");
+
 	}else {
 		version = 0;
 		applog(LOG_ERR, "unknown hardware version !!!");
@@ -935,7 +940,7 @@ hardware_version_e inno_get_hwver(void)
 	return version;
 }
 
-
+#if 0
 /******************************************************************************
  * Function:    temp_to_centigrade
  * Description: temperature value to centigrade
@@ -950,6 +955,6 @@ int temp_to_centigrade(int temp)
 
     return (595.0f - temp) * 2 / 3 + 0.5f;
 }
-
+#endif
 
 
