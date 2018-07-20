@@ -481,7 +481,7 @@ void A1_detect(bool hotplug)
     mcompat_tempctrl_get_defcfg(&tmp_cfg);
     tmp_cfg.tmp_min      = -40;     // min value of temperature
     tmp_cfg.tmp_max      = 125;     // max value of temperature
-    tmp_cfg.tmp_target   = 55;      // target temperature
+    tmp_cfg.tmp_target   = 50;      // target temperature
     tmp_cfg.tmp_thr_lo   = 30;      // low temperature threshold
     tmp_cfg.tmp_thr_hi   = 75;      // high temperature threshold
     tmp_cfg.tmp_thr_warn = 80;     // warning threshold
@@ -497,6 +497,7 @@ void A1_detect(bool hotplug)
     fan_cfg.fan_speed = 10;
     fan_cfg.fan_speed_target = 10;
     mcompat_fanctrl_init(&fan_cfg);
+    mcompat_fanctrl_set_bypass(false);
 
     pthread_t tid;
     pthread_create(&tid, NULL, mcompat_fanctrl_thread, NULL);
