@@ -6619,7 +6619,7 @@ void hashmeter(int thr_id, uint64_t hashes_done)
         device_tdiff = tdiff(&total_tv_end, &cgpu->last_message_tv);
         copy_time(&cgpu->last_message_tv, &total_tv_end);
         thr_mhs = (double)hashes_done / device_tdiff / 1000;        //KHs
-        applog(LOG_DEBUG, "[thread %d: %"PRIu64" hashes, %.1f mhash/sec]",
+        applog(LOG_DEBUG, "[thread %d: %"PRIu64" hashes, %.1f khash/sec]",
                thr_id, hashes_done, thr_mhs);
         hashes_done /= 1000;
 
@@ -6665,24 +6665,28 @@ void hashmeter(int thr_id, uint64_t hashes_done)
     decay_time(&rolling1, hashes_done, tv_tdiff, 60.0);
     decay_time(&rolling5, hashes_done, tv_tdiff, 300.0);
     decay_time(&rolling15, hashes_done, tv_tdiff, 900.0);
-    global_hashrate = llround(total_rolling) * 1000000;
+    global_hashrate = llround(total_rolling) * 1000;
     total_secs = tdiff(&total_tv_end, &total_tv_start);
     if (showlog) {
         char displayed_hashes[16], displayed_rolling[16];
         char displayed_r1[16], displayed_r5[16], displayed_r15[16];
         uint64_t d64;
 
-        d64 = (double)total_mhashes_done / total_secs * 1000000ull;
+        d64 = (double)total_mhashes_done / total_secs * 1000ull;
         suffix_string(d64, displayed_hashes, sizeof(displayed_hashes), 4);
-        d64 = (double)total_rolling * 1000000ull;
+        d64 = (double)total_rolling * 1000ull;
         suffix_string(d64, displayed_rolling, sizeof(displayed_rolling), 4);
-        d64 = (double)rolling1 * 1000000ull;
+        d64 = (double)rolling1 * 1000ull;
         suffix_string(d64, displayed_r1, sizeof(displayed_rolling), 4);
-        d64 = (double)rolling5 * 1000000ull;
+        d64 = (double)rolling5 * 1000ull;
         suffix_string(d64, displayed_r5, sizeof(displayed_rolling), 4);
-        d64 = (double)rolling15 * 1000000ull;
+        d64 = (double)rolling15 * 1000ull;
         suffix_string(d64, displayed_r15, sizeof(displayed_rolling), 4);
         snprintf(statusline, sizeof(statusline),
+            "(%ds):%s (1m):%s (5m):%s (15m):%s (avg):%sh/s",
+            opt_log_interval, displayed_rolling, displayed_r1, displayed_r5,
+            displayed_r15, displayed_hashes);
+        applog(LOG_INFO, 
             "(%ds):%s (1m):%s (5m):%s (15m):%s (avg):%sh/s",
             opt_log_interval, displayed_rolling, displayed_r1, displayed_r5,
             displayed_r15, displayed_hashes);
@@ -10731,7 +10735,7 @@ begin_bench:
         struct pool *pool;
 
         // add by wangpeng
-        mcompat_rand_temp_update();
+        //mcompat_rand_temp_update();
 #if 0        
         //
         if(g_hwver == MCOMPAT_LIB_HARDWARE_VERSION_G9)
@@ -10843,6 +10847,8 @@ begin_bench:
             stage_work(work);
             continue;
         }
+
+        cgsleep_ms(50);
     }
 
     return 0;
