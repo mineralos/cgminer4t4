@@ -991,7 +991,7 @@ static struct api_data *A1_api_stats(struct cgpu_info *cgpu)
 		sprintf(s, "Temp prewarn %d", i);
 		ROOT_ADD_API(int, s, cgpu->temp_prewarn[i], false);
 	}
-	ROOT_ADD_API(int, "Fan duty", fan_speed, false);
+	ROOT_ADD_API(int, "Fan duty", fan_speed, true);
     //ROOT_ADD_API(bool, "FanOptimal", g_fan_ctrl.optimal, false);
 	ROOT_ADD_API(int, "iVid", t1->vid, false);
 	ROOT_ADD_API(bool, "VidOptimal", t1->VidOptimal, false);
