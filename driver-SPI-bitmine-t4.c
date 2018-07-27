@@ -472,9 +472,12 @@ void A1_detect(bool hotplug)
 
     //sys_platform_debug_init(MCOMPAT_LOG_DEBUG);
     sys_platform_debug_init(MCOMPAT_LOG_INFO);
-    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);    
-    //sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+#ifdef USE_HARDWARE_SOC
     sys_platform_init(PLATFORM_SOC_HUB, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+#else
+    //sys_platform_init(PLATFORM_ZYNQ_SPI_G9, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+    sys_platform_init(PLATFORM_ZYNQ_HUB_G19, MCOMPAT_LIB_MINER_TYPE_A8, ASIC_CHAIN_NUM, ASIC_CHIP_NUM);
+#endif
 
     /* Init temp ctrl */
     c_temp_cfg tmp_cfg;
