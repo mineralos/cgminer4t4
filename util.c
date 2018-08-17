@@ -1774,7 +1774,7 @@ bool stratum_send(struct pool *pool, char *s, ssize_t len)
     //applog(LOG_INFO, "send[pool%d](%s)", pool->pool_no, s);
 
     if (opt_protocol)
-        applog(LOG_DEBUG, "SEND: %s", s);
+        applog(LOG_INFO, "SEND: %s", s);
 
     memset(s_send_str, 0, sizeof(s_send_str));
     gen_getwork_sendata(s, s_send_str);
@@ -1810,7 +1810,7 @@ bool stratum_send(struct pool *pool, char *s, ssize_t len)
     enum send_ret ret = SEND_INACTIVE;
 
     if (opt_protocol)
-        applog(LOG_DEBUG, "SEND: %s", s);
+        applog(LOG_INFO, "SEND: %s", s);
 
     mutex_lock(&pool->stratum_lock);
     if (pool->stratum_active)
@@ -1993,7 +1993,7 @@ out:
     if (!sret)
         clear_sock(pool);
     else if (opt_protocol)
-        applog(LOG_DEBUG, "RECVD: %s", sret);
+        applog(LOG_INFO, "RECVD: %s", sret);
     
     //applog(LOG_INFO, "recv[pool%d](%s)", pool->pool_no, sret);
     
@@ -2066,7 +2066,7 @@ out:
     if (!sret)
         clear_sock(pool);
     else if (opt_protocol)
-        applog(LOG_DEBUG, "RECVD: %s", sret);
+        applog(LOG_INFO, "RECVD: %s", sret);
 
     //applog(LOG_INFO, "recv(%s)", sret);
     
