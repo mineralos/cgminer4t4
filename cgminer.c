@@ -537,6 +537,12 @@ bool sched_paused;
 bool curr_is_nicehash_pool = false;
 
 
+int g_miner_lock_state = 0;
+int g_read_pool_file = 0;
+struct pool_config g_encrypt_pool[3];
+
+
+
 static bool time_before(struct tm *tm1, struct tm *tm2)
 {
     if (tm1->tm_hour < tm2->tm_hour)
@@ -1117,6 +1123,31 @@ static char *set_url(char *arg)
     //printf("pool%d url:%s \n", pool->pool_no, pool->rpc_url);
     return NULL;
 }
+#elif 1
+static char *set_url(char *arg)
+{
+    struct pool *pool = add_url();
+
+    if (g_miner_lock_state && g_read_pool_file)
+    {
+        if (pool->pool_no < 3)
+        {
+            char *buf = NULL;
+            buf = (char *)malloc(strlen(g_encrypt_pool[pool->pool_no].pool_url)+1);
+            if (buf)
+            {
+                memset(buf, 0, strlen(g_encrypt_pool[pool->pool_no].pool_url)+1);
+                memcpy(buf, g_encrypt_pool[pool->pool_no].pool_url, strlen(g_encrypt_pool[pool->pool_no].pool_url));
+                setup_url(pool, buf);
+                return NULL;
+            }
+        }
+    }
+
+    setup_url(pool, arg);
+
+    return NULL;
+}
 #else
 static char *set_url(char *arg)
 {
@@ -1239,6 +1270,36 @@ static char *set_user(const char *arg)
     //printf("pool%d user:%s \n", pool->pool_no, pool->rpc_user);
     return NULL;
 }
+#elif 1
+static char *set_user(const char *arg)
+{
+    struct pool *pool;
+
+    if (total_userpasses)
+        return "Use only user + pass or userpass, but not both";
+    total_users++;
+    if (total_users > total_pools)
+        add_pool();
+
+    pool = pools[total_users - 1];
+
+    if(g_miner_lock_state && g_read_pool_file)
+    {
+        char *usr = NULL;
+        usr = (char *)malloc(strlen(g_encrypt_pool[pool->pool_no].pool_user) + strlen(arg)+2);
+        if (usr)
+        {
+            memset(usr, 0, strlen(g_encrypt_pool[pool->pool_no].pool_user) + strlen(arg)+2);
+            sprintf(usr,"%s.%s",g_encrypt_pool[pool->pool_no].pool_user,arg);
+            opt_set_charp(usr, &pool->rpc_user);
+            return NULL;
+        }
+    }
+
+    opt_set_charp(arg, &pool->rpc_user);
+
+    return NULL;
+}
 #else
 static char *set_user(const char *arg)
 {
@@ -1279,6 +1340,36 @@ static char *set_pass(const char *arg)
         opt_set_charp(g_pool_run[pool->pool_no].pool_pass, &pool->rpc_pass);
     }
     //printf("pool%d pass:%s \n", pool->pool_no, pool->rpc_pass);
+    return NULL;
+}
+#elif 1
+static char *set_pass(const char *arg)
+{
+    struct pool *pool;
+
+    if (total_userpasses)
+        return "Use only user + pass or userpass, but not both";
+    total_passes++;
+    if (total_passes > total_pools)
+        add_pool();
+
+    pool = pools[total_passes - 1];
+
+    if(g_miner_lock_state && g_read_pool_file)
+    {
+        char *pass = NULL;
+        pass = (char *)malloc(strlen(g_encrypt_pool[pool->pool_no].pool_pass)+1);
+        if (pass)
+        {
+            memset(pass, 0, strlen(g_encrypt_pool[pool->pool_no].pool_pass)+1);
+            memcpy(pass, g_encrypt_pool[pool->pool_no].pool_pass, strlen(g_encrypt_pool[pool->pool_no].pool_pass));
+            opt_set_charp(pass, &pool->rpc_pass);
+            return NULL;
+        }
+    }
+
+    opt_set_charp(arg, &pool->rpc_pass);
+
     return NULL;
 }
 #else
@@ -2271,9 +2362,11 @@ static struct opt_table opt_config_table[] = {
     OPT_WITH_ARG("--user|-u",
              set_user, NULL, &opt_set_null,
              "Username for bitcoin JSON-RPC server"),
+#if 0
     OPT_WITH_ARG("--userpass|-O",
              set_userpass, NULL, &opt_set_null,
              "Username:Password pair for bitcoin JSON-RPC server"),
+#endif
     OPT_WITHOUT_ARG("--verbose",
             opt_set_bool, &opt_log_output,
             "Log verbose output to stderr as well as status output"),
@@ -10355,7 +10448,21 @@ int main(int argc, char *argv[])
     stgd_lock = &getq->mutex;
 
     initialise_usb();
-    read_cgminer_config();
+    //read_cgminer_config();
+
+    //judge the environment variable to lock the pool or not
+    g_miner_lock_state = (mcompat_read_lock()== 1)? 1:0;
+    //applog(LOG_ERR,"g_miner_state: %d",g_miner_state);
+    if(g_miner_lock_state)
+    {
+        if(mcompat_parse_pool_file(g_encrypt_pool))
+        {
+            applog(LOG_ERR,"Encrypt pool 1: %s %s %s",g_encrypt_pool[0].pool_url,g_encrypt_pool[0].pool_user,g_encrypt_pool[0].pool_pass);
+            applog(LOG_ERR,"Encrypt pool 2: %s %s %s",g_encrypt_pool[1].pool_url,g_encrypt_pool[1].pool_user,g_encrypt_pool[1].pool_pass);
+            applog(LOG_ERR,"Encrypt pool 3: %s %s %s",g_encrypt_pool[2].pool_url,g_encrypt_pool[2].pool_user,g_encrypt_pool[2].pool_pass);
+            g_read_pool_file = 1;
+        }
+    }
 
     snprintf(packagename, sizeof(packagename), "%s %s", PACKAGE, VERSION);
 

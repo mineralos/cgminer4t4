@@ -723,6 +723,7 @@ char* mcompat_arg_printd(char *arg, int len)
     
 }
 
+#if 0
 char* mcompat_arg_printe(char *arg, int len)
 {
     int i;
@@ -798,6 +799,7 @@ int str_bcd2hex(char *bcd, char *hex)
 
     return (len / 2);
 }
+#endif
 
 void debug_print_pool_config(void)
 {
@@ -812,6 +814,7 @@ void debug_print_pool_config(void)
     }
 }
 
+#if 0
 #define CONFIG_FILE_PATH    "/etc/cg.conf"
 char * key = "NTBO^pac./01WU@S";    //QWERasdf1234ZXCV
 int read_cgminer_config(void)
@@ -881,6 +884,7 @@ int read_cgminer_config(void)
     
     return 0;   
 }
+#endif
 
 #if 0
 int g_last_temp_min = T4_TEMP_LOW_INIT;
