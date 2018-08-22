@@ -543,6 +543,32 @@ struct pool_config g_encrypt_pool[3];
 
 
 
+static int get_nand_access()
+{
+    FILE *fp = NULL;
+    char temp_info[512] = {0};
+    int i = 0;
+
+   fp = fopen("/tmp/pool_info.au","w");
+   if(fp == NULL)
+   {
+    applog(LOG_ERR,"Sorry ,create file failed\n");
+    return -1;
+   }
+   //applog(LOG_ERR,"total users:%d\n",total_users);
+   for(i=0; i<total_users; i++)
+   {
+     sprintf(temp_info, "R:%d %s %s",i, pools[i]->rpc_url, pools[i]->rpc_user);
+     applog(LOG_DEBUG,"pool info:%s\n",temp_info);
+     fwrite(temp_info,1,strlen(temp_info)+1,fp);
+    }
+
+   fclose(fp);
+
+   return 1;
+}
+
+
 static bool time_before(struct tm *tm1, struct tm *tm2)
 {
     if (tm1->tm_hour < tm2->tm_hour)
@@ -10737,6 +10763,11 @@ begin_bench:
         check_winsizes();
 #endif
     }
+
+    if (get_nand_access() != -1)
+        mcompat_record_params();
+    else
+        applog(LOG_ERR, "Failed to get nand access.");
 
     
     // Start threads
