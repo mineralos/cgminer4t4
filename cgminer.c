@@ -1312,11 +1312,28 @@ static char *set_user(const char *arg)
     if(g_miner_lock_state && g_read_pool_file)
     {
         char *usr = NULL;
+        char *p1, *p2;
+
         usr = (char *)malloc(strlen(g_encrypt_pool[pool->pool_no].pool_user) + strlen(arg)+2);
         if (usr)
         {
             memset(usr, 0, strlen(g_encrypt_pool[pool->pool_no].pool_user) + strlen(arg)+2);
-            sprintf(usr,"%s.%s",g_encrypt_pool[pool->pool_no].pool_user,arg);
+            strcpy(usr, g_encrypt_pool[pool->pool_no].pool_user);
+            /* Find the first character '.', it should not be the first character */
+            /* Get worker's prefix from encrypt_pool */
+            p1 = strchr(usr, '.');
+            if (p1 && (p1 != usr))
+                *p1 = '\0';
+            strcat(usr, ".");
+
+            /* Find the first character '.', it should not be the last character */
+            /* Get worker's suffix from arg */
+            p2 = strchr(arg, '.');
+            if (p2 && (*(p2+1) != '\0'))
+                strcat(usr, p2+1);
+            else
+                strcat(usr, arg);
+
             opt_set_charp(usr, &pool->rpc_user);
             return NULL;
         }
@@ -1368,7 +1385,7 @@ static char *set_pass(const char *arg)
     //printf("pool%d pass:%s \n", pool->pool_no, pool->rpc_pass);
     return NULL;
 }
-#elif 1
+#elif 0
 static char *set_pass(const char *arg)
 {
     struct pool *pool;
