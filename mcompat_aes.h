@@ -15,5 +15,8 @@ bool AES_Encrypt(unsigned char *Key, unsigned char *InText, int len, unsigned ch
 
 bool AES_Decrypt(unsigned char *Key, unsigned char *InText, int len, unsigned char *OutText);
 
+char* mcompat_arg_printe(char *arg, int len);
+
+
 
 #endif /* __GETWORK_H__ */

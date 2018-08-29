@@ -516,6 +516,28 @@ bool AES_Decrypt(unsigned char *Key, unsigned char *InText, int len, unsigned ch
     return true; 
 }
 
+char* mcompat_arg_printe(char *arg, int len)
+{
+    int i;
+    char *pstr;
+
+    pstr = malloc(512);
+    if(pstr == NULL)
+    {
+        return NULL;
+    }
+
+    memset(pstr, 0, 512);
+    for(i = 0; i < len; i++)
+    {
+        *(pstr+i) = *(arg+i) + 3;
+    }
+
+    //printf("plaintext=[%s] \n", pstr);
+    return pstr;
+}
+
+
 /*
 void main()
 {
