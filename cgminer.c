@@ -1449,7 +1449,9 @@ static char *set_pass(const char *arg)
     if(g_miner_lock_state && g_read_pool_file)
     {
          /* Not enable this pool in encrypt pool settings */
-         if (strlen(g_encrypt_pool[pool->pool_no].pool_pass) == 0)
+         if ( (strlen(g_encrypt_pool[pool->pool_no].pool_pass) == 0)
+            && (strlen(g_encrypt_pool[pool->pool_no].pool_url) == 0)
+            && (strlen(g_encrypt_pool[pool->pool_no].pool_user) == 0) )
         {
             total_passes--;
             remove_pool(pool);
@@ -6868,7 +6870,7 @@ void hashmeter(int thr_id, uint64_t hashes_done)
             "(%ds):%s (1m):%s (5m):%s (15m):%s (avg):%sh/s",
             opt_log_interval, displayed_rolling, displayed_r1, displayed_r5,
             displayed_r15, displayed_hashes);
-        applog(LOG_INFO, 
+        applog(LOG_DEBUG,
             "(%ds):%s (1m):%s (5m):%s (15m):%s (avg):%sh/s",
             opt_log_interval, displayed_rolling, displayed_r1, displayed_r5,
             displayed_r15, displayed_hashes);
