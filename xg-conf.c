@@ -226,8 +226,7 @@ static int gen_encrypted_buf(void)
     strkey = mcompat_arg_printe(key, 16);
     for (i=0; i<POOL_NUM; i++)
     {
-        if ( strlen(g_pool[i].pool_url) && strlen(g_pool[i].pool_user) 
-            && strlen(g_pool[i].pool_pass) )
+        if ( strlen(g_pool[i].pool_url) && strlen(g_pool[i].pool_user) )
         {
             memset(str2, 0, sizeof(str2));
             encrypted(strkey, g_pool[i].pool_url, strlen(g_pool[i].pool_url), str2);
@@ -239,9 +238,12 @@ static int gen_encrypted_buf(void)
             strcat(buf, str2);
             strcat(buf, "\r\n");
 
-            memset(str2, 0, sizeof(str2));
-            encrypted(strkey, g_pool[i].pool_pass, strlen(g_pool[i].pool_pass), str2);
-            strcat(buf, str2);
+            if (strlen(g_pool[i].pool_pass) > 0)
+            {
+                memset(str2, 0, sizeof(str2));
+                encrypted(strkey, g_pool[i].pool_pass, strlen(g_pool[i].pool_pass), str2);
+                strcat(buf, str2);
+            }
             strcat(buf, "\r\n");
         }
     }
