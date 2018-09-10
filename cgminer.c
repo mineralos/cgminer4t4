@@ -10477,6 +10477,9 @@ int main(int argc, char *argv[])
     unsigned int k;
     char *s;
 
+    /* Mount filesystem for events record, mount /events and /miners */
+    mcompat_mount_fs();
+
     /* This dangerous functions tramples random dynamically allocated
      * variables so do it before anything at all */
     if (unlikely(curl_global_init(CURL_GLOBAL_ALL)))
@@ -10830,10 +10833,13 @@ begin_bench:
 #endif
     }
 
+    /* Replace with events record */
+#if 0
     if (get_nand_access() != -1)
         mcompat_record_params();
     else
         applog(LOG_ERR, "Failed to get nand access.");
+#endif
 
     
     // Start threads

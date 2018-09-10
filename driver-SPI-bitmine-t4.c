@@ -547,6 +547,8 @@ void A1_detect(bool hotplug)
     // init finshed
     //g_miner_state = 1;
 
+    mcompat_get_miner_status();
+
     applog(LOG_INFO, "A1 dectect finshed");
 }
 
