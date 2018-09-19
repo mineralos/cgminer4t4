@@ -402,6 +402,7 @@ bool detect_all_A1_chain(void)
         cgpu->drv = &bitmineA1_drv;
         cgpu->name = "BitmineA1.SingleChain";
         cgpu->threads = 1;
+	cgpu->chainNum = i;
         cgpu->device_data = a1;
         cgtime(&(cgpu->dev_start_tv));
 

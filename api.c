@@ -2026,9 +2026,9 @@ static void ascstatus(struct io_data *io_data, int asc, bool isjson, bool precom
 
         status = (char *)status2str(cgpu->status);
 
-        root = api_add_int(root, "ASC", &asc, false);
+        root = api_add_int(root, "ASC", &(cgpu->chainNum), false);
         root = api_add_string(root, "Name", cgpu->drv->name, false);
-        root = api_add_int(root, "ID", &(cgpu->device_id), false);
+        root = api_add_int(root, "ID", &(cgpu->chainNum), false);
         root = api_add_string(root, "Enabled", enabled, false);
         root = api_add_string(root, "Status", status, false);
         root = api_add_temp(root, "Temperature", &temp, false);
