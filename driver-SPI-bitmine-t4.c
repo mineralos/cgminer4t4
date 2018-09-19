@@ -815,7 +815,7 @@ static int64_t A1_scanwork(struct thr_info *thr)
             continue;
         }
         
-        applog(LOG_INFO, "YEAH: %d: chip %d / job_id %d: nonce:%s", cid, chip_id, job_id, noncehex);
+        applog(LOG_DEBUG, "YEAH: %d: chip %d / job_id %d: nonce:%s", cid, chip_id, job_id, noncehex);
         //hexdump("###data1", work->data + 0, 32);
         //hexdump("###data2", work->data + 32, 32);
         //hexdump("###data3", work->data + 64, 32);
